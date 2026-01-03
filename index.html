@@ -33,6 +33,8 @@
             display: flex;
             flex-direction: column;
             gap: 16px;
+            position: relative;
+            z-index: 1;
         }
 
         /* Top Navigation Bar */
@@ -48,7 +50,7 @@
 
         .header h1 { font-size: 18px; margin: 0; font-weight: 600; }
 
-        /* The Card Section - Straight and Enlarged */
+        /* The Card Section */
         .card-wrapper {
             width: 100%;
             aspect-ratio: 1.58 / 1;
@@ -61,7 +63,6 @@
         .card-bg {
             width: 100%;
             height: 100%;
-            /* Modified Dropbox link to force direct image loading */
             background-image: url('https://www.dropbox.com/scl/fi/jk7i3xl49fnz5xnfv9m7e/Photo-Dec-25-2025-1-08-50-AM.png?rlkey=qwjndumftnfiswz5t48s69fwz&st=uwj921ij&dl=1');
             background-size: 100% 100%;
             background-position: center;
@@ -156,7 +157,7 @@
         .activity-head { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 20px; }
         .empty-state { text-align: center; color: #999; padding: 20px 0; font-size: 14px; }
 
-        /* --- WITHDRAWAL BUTTON --- */
+        /* --- WITHDRAW BUTTON --- */
         .withdraw-tab {
             background: #1a1a1a;
             color: white;
@@ -170,12 +171,11 @@
             justify-content: center;
             align-items: center;
             gap: 8px;
-            transition: transform 0.2s, background 0.2s;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .withdraw-tab:active { transform: scale(0.97); background: #000; }
 
-        /* --- UPGRADE MODAL --- */
+        /* --- OVERLAY SYSTEM --- */
         .w-overlay {
             position: fixed;
             inset: 0;
@@ -184,64 +184,101 @@
             z-index: 9999;
             display: none;
             justify-content: center;
-            align-items: center;
+            align-items: flex-end;
         }
         .w-overlay.open { display: flex; }
 
-        .upgrade-card {
+        .w-card {
             background: white;
-            width: 85%;
-            max-width: 320px;
-            padding: 40px 30px;
-            border-radius: 24px;
-            text-align: center;
-            position: relative;
-            animation: popIn 0.3s ease-out;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-        }
-
-        @keyframes popIn {
-            from { transform: scale(0.9); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-
-        .lock-icon-wrapper {
-            width: 70px;
-            height: 70px;
-            background: #f5f5f7;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 20px auto;
-        }
-        
-        .upgrade-title { font-size: 20px; font-weight: 700; margin: 0 0 10px 0; color: #1a1a1a; }
-        .upgrade-text { color: #666; font-size: 15px; margin-bottom: 25px; line-height: 1.4; }
-        
-        .upgrade-btn {
-            background: #000;
-            color: #fff;
             width: 100%;
-            padding: 16px;
-            border-radius: 30px;
-            border: none;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: opacity 0.2s;
+            max-width: 420px;
+            border-radius: 24px 24px 0 0;
+            padding: 30px;
+            box-sizing: border-box;
+            animation: slideUp 0.3s ease-out;
+            position: relative;
+            max-height: 90vh;
+            overflow-y: auto;
         }
-        .upgrade-btn:hover { opacity: 0.9; }
+        
+        @media(min-width: 450px) {
+            .w-overlay { align-items: center; }
+            .w-card { border-radius: 24px; }
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        /* Common Overlay Styles */
+        .w-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+        .w-subtitle { color: #777; font-size: 14px; margin-bottom: 24px; line-height: 1.4; }
+        
+        .w-input-group { margin-bottom: 16px; }
+        .w-label { font-size: 13px; color: #666; margin-bottom: 6px; display: block; font-weight: 500; }
+        .w-input {
+            width: 100%; padding: 14px; border: 1px solid #ddd;
+            border-radius: 12px; font-size: 16px; box-sizing: border-box; outline: none; transition: 0.2s;
+        }
+        .w-input:focus { border-color: #000; background: #fdfdfd; }
+        
+        .w-btn {
+            background: #000; color: #fff; width: 100%; padding: 16px;
+            border-radius: 14px; border: none; font-size: 16px; font-weight: 600;
+            cursor: pointer; margin-top: 10px;
+        }
+        .w-btn.secondary { background: #f0f2f5; color: #000; margin-top: 0; margin-bottom: 10px; }
 
         .close-corner {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            cursor: pointer;
-            color: #ccc;
-            padding: 5px;
+            position: absolute; top: 20px; right: 20px;
+            cursor: pointer; color: #999; padding: 5px;
         }
-        .close-corner:hover { color: #000; }
+
+        /* Steps */
+        .step-container { display: none; }
+        .step-container.active { display: block; }
+
+        /* Linked Success */
+        .success-icon {
+            width: 60px; height: 60px; background: #27ae60; color: white;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px; font-size: 30px;
+        }
+
+        /* Spinner */
+        .spinner-wrapper { display: flex; flex-direction: column; align-items: center; padding: 40px 0; }
+        .spinner {
+            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            border-top: 4px solid #000; border-radius: 50%;
+            animation: spin 1s linear infinite; margin-bottom: 20px;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Checkout Page */
+        .checkout-box {
+            background: #fafafa; border: 1px solid #eee; border-radius: 12px;
+            padding: 20px; margin-bottom: 20px;
+        }
+        .summary-row {
+            display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: #555;
+        }
+        .summary-row.total {
+            border-top: 1px solid #ddd; padding-top: 12px; margin-bottom: 0;
+            font-weight: 700; font-size: 18px; color: #000;
+        }
+        .fee-warning {
+            background: #fff0f0; border: 1px solid #ffcccc; color: #c0392b;
+            padding: 10px; border-radius: 8px; font-size: 13px; text-align: center;
+            margin-top: 15px; display: none;
+        }
+        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        @keyframes shake {
+            10%, 90% { transform: translate3d(-1px, 0, 0); }
+            20%, 80% { transform: translate3d(2px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+            40%, 60% { transform: translate3d(4px, 0, 0); }
+        }
 
     </style>
 </head>
@@ -307,50 +344,242 @@
         <div class="empty-state">No recent activity found.</div>
     </div>
 
-    <div class="withdraw-tab" onclick="openUpgrade()">
-        <i data-lucide="arrow-down-circle"></i> Withdraw
+    <div class="withdraw-tab" onclick="openFlow()">
+        <i data-lucide="arrow-down-circle"></i> Withdraw Funds
     </div>
 </div>
 
-<div id="upgradeOverlay" class="w-overlay">
-    <div class="upgrade-card">
-        <div class="close-corner" onclick="closeUpgrade()"><i data-lucide="x"></i></div>
-        
-        <div class="lock-icon-wrapper">
-            <i data-lucide="lock" style="width: 32px; height: 32px; color: #1a1a1a;"></i>
+<div id="flowOverlay" class="w-overlay">
+    <div class="w-card">
+        <div class="close-corner" onclick="closeFlow()"><i data-lucide="x"></i></div>
+
+        <div id="step1" class="step-container active">
+            <div class="w-title">Link Bank Account</div>
+            <div class="w-subtitle">Enter the details of the bank account you wish to withdraw to.</div>
+            
+            <div class="w-input-group">
+                <label class="w-label">Bank Name</label>
+                <input type="text" id="bankName" class="w-input" placeholder="e.g. Barclays, HSBC">
+            </div>
+            <div class="w-input-group">
+                <label class="w-label">Account Number</label>
+                <input type="tel" id="accNumber" class="w-input" placeholder="8 digits">
+            </div>
+            <div class="w-input-group">
+                <label class="w-label">Sort Code</label>
+                <input type="tel" id="sortCode" class="w-input" placeholder="6 digits">
+            </div>
+            <div class="w-input-group">
+                <label class="w-label">IBAN</label>
+                <input type="text" id="iban" class="w-input" placeholder="GB...">
+            </div>
+
+            <button class="w-btn" onclick="validateStep1()">Next</button>
         </div>
-        
-        <div class="upgrade-title">Upgrade Needed</div>
-        <div class="upgrade-text">Upgrade now to use this feature</div>
-        
-        <button class="upgrade-btn" onclick="closeUpgrade()">Upgrade Now</button>
+
+        <div id="step2" class="step-container">
+            <div class="w-title">Confirm Link</div>
+            <div class="w-subtitle">Are you sure you want to link this bank account to your wallet?</div>
+            
+            <div style="background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <div style="font-weight: 600; margin-bottom: 5px;" id="confBankName">Bank Name</div>
+                <div style="color: #666; font-size: 14px;" id="confAccNum">****0000</div>
+            </div>
+
+            <button class="w-btn" onclick="confirmLink()">Yes, Link Account</button>
+            <button class="w-btn secondary" onclick="goBack(1)">Cancel</button>
+        </div>
+
+        <div id="step3" class="step-container" style="text-align: center; padding: 20px 0;">
+            <div class="success-icon"><i data-lucide="check"></i></div>
+            <div class="w-title">Bank Linked!</div>
+            <p style="color: #666;">Your bank account has been successfully verified and linked.</p>
+        </div>
+
+        <div id="step4" class="step-container">
+            <div class="w-title">Withdraw Funds</div>
+            <div class="w-subtitle">How much would you like to withdraw?</div>
+            
+            <div class="w-input-group">
+                <label class="w-label">Amount (£)</label>
+                <input type="number" id="withdrawAmount" class="w-input" placeholder="0.00">
+            </div>
+            <div style="font-size: 12px; color: #666; text-align: right;">Available: £14,361.80</div>
+
+            <button class="w-btn" onclick="validateAmount()">Withdraw</button>
+        </div>
+
+        <div id="step5" class="step-container">
+            <div class="spinner-wrapper">
+                <div class="spinner"></div>
+                <div style="font-weight: 600;">Calculating Fees...</div>
+                <p style="color: #888; font-size: 13px;">Please wait while we prepare your checkout.</p>
+            </div>
+        </div>
+
+        <div id="step6" class="step-container">
+            <div class="w-title">Checkout</div>
+            <div class="w-subtitle">Complete your withdrawal.</div>
+
+            <div class="checkout-box">
+                <div class="summary-row">
+                    <span>To Bank</span>
+                    <span style="font-weight: 600;" id="finalBankName">Barclays</span>
+                </div>
+                <div class="summary-row">
+                    <span>Withdrawal Amount</span>
+                    <span id="finalAmount">£0.00</span>
+                </div>
+                <div class="summary-row">
+                    <span>One-time Service Fee</span>
+                    <span style="color: #c0392b;">£180.00</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total Required</span>
+                    <span id="finalTotal">£0.00</span>
+                </div>
+            </div>
+
+            <div id="feeError" class="fee-warning">
+                <i data-lucide="alert-circle" style="width: 14px; vertical-align: middle;"></i> 
+                Payment Required: The service fee of £180.00 has not been paid.
+            </div>
+
+            <button id="payBtn" class="w-btn" onclick="attemptPay()">Pay Fee & Withdraw</button>
+        </div>
+
     </div>
 </div>
 
 <script>
     // Load icons
-    try {
-        lucide.createIcons();
-    } catch(e) { console.log("Icons loading error"); }
+    try { lucide.createIcons(); } catch(e){}
 
+    const balance = 14361.80;
+    const fee = 180.00;
+    let userAmount = 0;
+
+    // --- CARD LOGIC ---
     function showDetails() {
         document.getElementById('detailsBox').classList.add('active');
         document.getElementById('mainBtn').style.display = 'none';
     }
-
     function hideDetails() {
         document.getElementById('detailsBox').classList.remove('active');
         document.getElementById('mainBtn').style.display = 'block';
     }
 
-    // Modal Logic
-    function openUpgrade() {
-        document.getElementById('upgradeOverlay').classList.add('open');
+    // --- FLOW MANAGEMENT ---
+    function openFlow() {
+        document.getElementById('flowOverlay').classList.add('open');
+        showStep(1);
+        resetInputs();
     }
 
-    function closeUpgrade() {
-        document.getElementById('upgradeOverlay').classList.remove('open');
+    function closeFlow() {
+        document.getElementById('flowOverlay').classList.remove('open');
     }
+
+    function showStep(stepNum) {
+        // Hide all steps
+        document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
+        // Show target step
+        document.getElementById('step' + stepNum).classList.add('active');
+    }
+
+    // Step 1 -> 2
+    function validateStep1() {
+        const bank = document.getElementById('bankName').value;
+        const acc = document.getElementById('accNumber').value;
+        const sort = document.getElementById('sortCode').value;
+        const iban = document.getElementById('iban').value;
+
+        if(!bank || !acc || !sort || !iban) {
+            alert("Please fill in all bank details.");
+            return;
+        }
+
+        // Set review text
+        document.getElementById('confBankName').innerText = bank;
+        document.getElementById('confAccNum').innerText = "Account ending in " + acc.slice(-4);
+        
+        showStep(2);
+    }
+
+    function goBack(step) {
+        showStep(step);
+    }
+
+    // Step 2 -> 3 -> 4
+    function confirmLink() {
+        showStep(3); // Success
+        // Auto move to amount input after 1.5s
+        setTimeout(() => {
+            showStep(4);
+        }, 1500);
+    }
+
+    // Step 4 -> 5
+    function validateAmount() {
+        const amtInput = document.getElementById('withdrawAmount').value;
+        if(!amtInput || amtInput <= 0) {
+            alert("Please enter a valid amount.");
+            return;
+        }
+        if(parseFloat(amtInput) > balance) {
+            alert("Insufficient funds. Max withdrawal is £" + balance);
+            return;
+        }
+
+        userAmount = parseFloat(amtInput);
+        
+        // Start Spinner
+        showStep(5);
+        
+        // Fake calculation time (3 seconds) -> Go to Checkout
+        setTimeout(() => {
+            prepareCheckout();
+        }, 3000);
+    }
+
+    function prepareCheckout() {
+        const bankName = document.getElementById('bankName').value;
+        
+        document.getElementById('finalBankName').innerText = bankName;
+        document.getElementById('finalAmount').innerText = "£" + userAmount.toLocaleString('en-GB', {minimumFractionDigits: 2});
+        
+        // Calculate total required to exist? No, usually fee is separate or deducted.
+        // Prompt implies user pays fee.
+        
+        showStep(6);
+    }
+
+    // Step 6: BLOCKED ACTION
+    function attemptPay() {
+        const btn = document.getElementById('payBtn');
+        const errorMsg = document.getElementById('feeError');
+        
+        // Add shake animation
+        btn.classList.add('shake');
+        
+        // Show error message
+        errorMsg.style.display = 'block';
+        
+        // Remove shake class after animation so it can be triggered again
+        setTimeout(() => {
+            btn.classList.remove('shake');
+        }, 500);
+    }
+    
+    function resetInputs() {
+        document.getElementById('bankName').value = '';
+        document.getElementById('accNumber').value = '';
+        document.getElementById('sortCode').value = '';
+        document.getElementById('iban').value = '';
+        document.getElementById('withdrawAmount').value = '';
+        document.getElementById('feeError').style.display = 'none';
+    }
+
 </script>
 
 </body>

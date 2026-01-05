@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Card Management Dashboard</title>
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -34,7 +34,7 @@
             flex-direction: column;
             gap: 16px;
             position: relative;
-            z-index: 1;
+            z-index: 1; /* Ensure container is below overlay */
         }
 
         /* Top Navigation Bar */
@@ -96,7 +96,7 @@
             justify-content: center;
             padding: 30px;
             color: white;
-            z-index: 5;
+            z-index: 10;
             cursor: pointer;
         }
 
@@ -172,6 +172,9 @@
             align-items: center;
             gap: 8px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            position: relative;
+            z-index: 5; /* Ensure it is clickable */
+            user-select: none;
         }
         .withdraw-tab:active { transform: scale(0.97); background: #000; }
 
@@ -182,11 +185,15 @@
             background: rgba(0,0,0,0.6);
             backdrop-filter: blur(5px);
             z-index: 9999;
-            display: none;
+            display: none; /* Default hidden */
             justify-content: center;
             align-items: flex-end;
         }
-        .w-overlay.open { display: flex; }
+        
+        /* This class makes it visible */
+        .w-overlay.open { 
+            display: flex !important; 
+        }
 
         .w-card {
             background: white;
@@ -246,33 +253,31 @@
             margin: 0 auto 20px; font-size: 30px;
         }
 
-        /* Spinner */
+        /* Dynamic Spinner */
         .spinner-wrapper { display: flex; flex-direction: column; align-items: center; padding: 40px 0; }
         .spinner {
-            width: 40px; height: 40px; border: 4px solid #f3f3f3;
+            width: 50px; height: 50px; border: 4px solid #f3f3f3;
             border-top: 4px solid #000; border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 20px;
+            animation: spin 1s linear infinite; margin-bottom: 25px;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .loading-text { font-weight: 600; font-size: 16px; margin-bottom: 5px; text-align: center; }
+        .loading-sub { font-size: 13px; color: #888; text-align: center; }
 
-        /* Checkout Page */
-        .checkout-box {
-            background: #fafafa; border: 1px solid #eee; border-radius: 12px;
-            padding: 20px; margin-bottom: 20px;
+        /* Tax Warning Block */
+        .tax-alert-box {
+            display: flex; flex-direction: column; align-items: center; text-align: center; padding: 10px 0;
         }
-        .summary-row {
-            display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 14px; color: #555;
+        .alert-icon-big {
+            width: 70px; height: 70px; background: #fff0f0; color: #e74c3c;
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            margin-bottom: 20px;
         }
-        .summary-row.total {
-            border-top: 1px solid #ddd; padding-top: 12px; margin-bottom: 0;
-            font-weight: 700; font-size: 18px; color: #000;
-        }
-        .fee-warning {
-            background: #fff0f0; border: 1px solid #ffcccc; color: #c0392b;
-            padding: 10px; border-radius: 8px; font-size: 13px; text-align: center;
-            margin-top: 15px; display: none;
-        }
-        .shake { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
+        .tax-title { font-size: 20px; font-weight: 700; color: #e74c3c; margin-bottom: 10px; }
+        .tax-desc { color: #555; line-height: 1.5; margin-bottom: 25px; font-size: 15px; }
+        
+        .shake-btn { animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both; }
         @keyframes shake {
             10%, 90% { transform: translate3d(-1px, 0, 0); }
             20%, 80% { transform: translate3d(2px, 0, 0); }
@@ -344,7 +349,7 @@
         <div class="empty-state">No recent activity found.</div>
     </div>
 
-    <div class="withdraw-tab" onclick="openFlow()">
+    <div id="withdrawBtn" class="withdraw-tab" onclick="openFlow()">
         <i data-lucide="arrow-down-circle"></i> Withdraw Funds
     </div>
 </div>
@@ -406,85 +411,86 @@
             </div>
             <div style="font-size: 12px; color: #666; text-align: right;">Available: £14,361.80</div>
 
-            <button class="w-btn" onclick="validateAmount()">Withdraw</button>
+            <button class="w-btn" onclick="startSequence()">Withdraw</button>
         </div>
 
         <div id="step5" class="step-container">
             <div class="spinner-wrapper">
                 <div class="spinner"></div>
-                <div style="font-weight: 600;">Calculating Fees...</div>
-                <p style="color: #888; font-size: 13px;">Please wait while we prepare your checkout.</p>
+                <div id="spinnerText" class="loading-text">Processing transfer...</div>
+                <div class="loading-sub">Please do not close this window</div>
             </div>
         </div>
 
         <div id="step6" class="step-container">
-            <div class="w-title">Checkout</div>
-            <div class="w-subtitle">Complete your withdrawal.</div>
-
-            <div class="checkout-box">
-                <div class="summary-row">
-                    <span>To Bank</span>
-                    <span style="font-weight: 600;" id="finalBankName">Barclays</span>
+            <div class="tax-alert-box">
+                <div class="alert-icon-big">
+                    <i data-lucide="triangle-alert" style="width: 36px; height: 36px;"></i>
                 </div>
-                <div class="summary-row">
-                    <span>Withdrawal Amount</span>
-                    <span id="finalAmount">£0.00</span>
+                <div class="tax-title">Transfer Taxes Not Paid</div>
+                <div class="tax-desc">
+                    Your withdrawal has been halted by the regulatory system. 
+                    Outstanding tax obligations must be settled before funds can be released to your bank.
                 </div>
-                <div class="summary-row">
-                    <span>One-time Service Fee</span>
-                    <span style="color: #c0392b;">£180.00</span>
-                </div>
-                <div class="summary-row total">
-                    <span>Total Required</span>
-                    <span id="finalTotal">£0.00</span>
-                </div>
+                
+                <button id="payTaxBtn" class="w-btn" style="background-color: #e74c3c;" onclick="triggerShake()">Pay Tax to Proceed</button>
+                <button class="w-btn secondary" onclick="closeFlow()">Cancel</button>
             </div>
-
-            <div id="feeError" class="fee-warning">
-                <i data-lucide="alert-circle" style="width: 14px; vertical-align: middle;"></i> 
-                Payment Required: The service fee of £180.00 has not been paid.
-            </div>
-
-            <button id="payBtn" class="w-btn" onclick="attemptPay()">Pay Fee & Withdraw</button>
         </div>
 
     </div>
 </div>
 
 <script>
-    // Load icons
-    try { lucide.createIcons(); } catch(e){}
+    // --- ICON LOADING (SAFE) ---
+    // This ensures that even if icons fail, the rest of the code works
+    document.addEventListener("DOMContentLoaded", function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        }
+    });
 
     const balance = 14361.80;
-    const fee = 180.00;
     let userAmount = 0;
 
     // --- CARD LOGIC ---
     function showDetails() {
-        document.getElementById('detailsBox').classList.add('active');
-        document.getElementById('mainBtn').style.display = 'none';
+        const box = document.getElementById('detailsBox');
+        const btn = document.getElementById('mainBtn');
+        if(box) box.classList.add('active');
+        if(btn) btn.style.display = 'none';
     }
+    
     function hideDetails() {
-        document.getElementById('detailsBox').classList.remove('active');
-        document.getElementById('mainBtn').style.display = 'block';
+        const box = document.getElementById('detailsBox');
+        const btn = document.getElementById('mainBtn');
+        if(box) box.classList.remove('active');
+        if(btn) btn.style.display = 'block';
     }
 
     // --- FLOW MANAGEMENT ---
     function openFlow() {
-        document.getElementById('flowOverlay').classList.add('open');
-        showStep(1);
-        resetInputs();
+        // Debugging log
+        console.log("Withdraw button clicked");
+        const overlay = document.getElementById('flowOverlay');
+        if (overlay) {
+            overlay.classList.add('open');
+            showStep(1);
+            resetInputs();
+        } else {
+            alert("Error: Overlay not found");
+        }
     }
 
     function closeFlow() {
-        document.getElementById('flowOverlay').classList.remove('open');
+        const overlay = document.getElementById('flowOverlay');
+        if (overlay) overlay.classList.remove('open');
     }
 
     function showStep(stepNum) {
-        // Hide all steps
         document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-        // Show target step
-        document.getElementById('step' + stepNum).classList.add('active');
+        const target = document.getElementById('step' + stepNum);
+        if(target) target.classList.add('active');
     }
 
     // Step 1 -> 2
@@ -499,76 +505,66 @@
             return;
         }
 
-        // Set review text
         document.getElementById('confBankName').innerText = bank;
         document.getElementById('confAccNum').innerText = "Account ending in " + acc.slice(-4);
-        
         showStep(2);
     }
 
-    function goBack(step) {
-        showStep(step);
-    }
+    function goBack(step) { showStep(step); }
 
     // Step 2 -> 3 -> 4
     function confirmLink() {
-        showStep(3); // Success
-        // Auto move to amount input after 1.5s
-        setTimeout(() => {
-            showStep(4);
-        }, 1500);
+        showStep(3);
+        setTimeout(() => { showStep(4); }, 1500);
     }
 
-    // Step 4 -> 5
-    function validateAmount() {
+    // Step 4 -> 5 (SEQUENCE)
+    function startSequence() {
         const amtInput = document.getElementById('withdrawAmount').value;
         if(!amtInput || amtInput <= 0) {
             alert("Please enter a valid amount.");
             return;
         }
         if(parseFloat(amtInput) > balance) {
-            alert("Insufficient funds. Max withdrawal is £" + balance);
+            alert("Insufficient funds.");
             return;
         }
 
-        userAmount = parseFloat(amtInput);
-        
-        // Start Spinner
+        // START SEQUENCE
         showStep(5);
-        
-        // Fake calculation time (3 seconds) -> Go to Checkout
+        const textEl = document.getElementById('spinnerText');
+
+        // Timing Sequence
+        textEl.innerText = "Processing transfer...";
+
         setTimeout(() => {
-            prepareCheckout();
-        }, 3000);
+            textEl.innerText = "Generating receipt...";
+        }, 2500);
+
+        setTimeout(() => {
+            textEl.innerText = "Accessing your linked bank...";
+        }, 5000);
+
+        setTimeout(() => {
+            textEl.innerText = "Sending funds...";
+        }, 7500);
+
+        setTimeout(() => {
+            textEl.innerText = "Verifying taxes...";
+        }, 10000);
+
+        // STOP & BLOCK
+        setTimeout(() => {
+            showStep(6); // Show Tax Warning
+        }, 13000);
     }
 
-    function prepareCheckout() {
-        const bankName = document.getElementById('bankName').value;
-        
-        document.getElementById('finalBankName').innerText = bankName;
-        document.getElementById('finalAmount').innerText = "£" + userAmount.toLocaleString('en-GB', {minimumFractionDigits: 2});
-        
-        // Calculate total required to exist? No, usually fee is separate or deducted.
-        // Prompt implies user pays fee.
-        
-        showStep(6);
-    }
-
-    // Step 6: BLOCKED ACTION
-    function attemptPay() {
-        const btn = document.getElementById('payBtn');
-        const errorMsg = document.getElementById('feeError');
-        
-        // Add shake animation
-        btn.classList.add('shake');
-        
-        // Show error message
-        errorMsg.style.display = 'block';
-        
-        // Remove shake class after animation so it can be triggered again
-        setTimeout(() => {
-            btn.classList.remove('shake');
-        }, 500);
+    // Step 6 Button Animation
+    function triggerShake() {
+        const btn = document.getElementById('payTaxBtn');
+        btn.classList.remove('shake-btn');
+        void btn.offsetWidth; // trigger reflow
+        btn.classList.add('shake-btn');
     }
     
     function resetInputs() {
@@ -577,7 +573,6 @@
         document.getElementById('sortCode').value = '';
         document.getElementById('iban').value = '';
         document.getElementById('withdrawAmount').value = '';
-        document.getElementById('feeError').style.display = 'none';
     }
 
 </script>

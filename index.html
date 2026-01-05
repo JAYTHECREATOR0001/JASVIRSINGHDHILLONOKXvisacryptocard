@@ -25,6 +25,7 @@
             padding: 20px;
             color: var(--text-main);
             min-height: 100vh;
+            overflow-x: hidden;
         }
 
         .container {
@@ -262,7 +263,45 @@
         .loading-text { font-weight: 600; font-size: 16px; margin-bottom: 5px; text-align: center; }
         .loading-sub { font-size: 13px; color: #888; text-align: center; }
 
-        /* --- RECEIPT STYLES --- */
+        /* --- COUNTDOWN PAGE --- */
+        .countdown-wrapper {
+            display: flex; flex-direction: column; align-items: center; padding: 40px 0;
+        }
+        .count-number {
+            font-size: 80px; font-weight: 800; color: #1a1a1a; line-height: 1;
+        }
+        .count-label {
+            font-size: 14px; color: #666; margin-top: 10px; text-transform: uppercase; letter-spacing: 1px;
+        }
+
+        /* --- DROPLET NOTIFICATION BANNER --- */
+        #dropletBanner {
+            position: fixed;
+            top: -100px; /* Start hidden above */
+            left: 50%;
+            transform: translateX(-50%);
+            background: #1a1a1a;
+            color: #fff;
+            padding: 12px 20px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 10000;
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 90%;
+            max-width: 380px;
+            justify-content: center;
+        }
+        #dropletBanner.visible {
+            top: 20px;
+        }
+
+        /* --- RECEIPT STYLES (Hidden initially) --- */
         .receipt-card {
             background: #fdfdfd;
             border: 1px solid #eee;
@@ -282,75 +321,24 @@
             font-size: 16px;
             letter-spacing: 0.5px;
         }
-
-        .receipt-body {
-            padding: 25px;
-        }
-
-        .receipt-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 16px;
-            font-size: 14px;
-            color: #555;
-        }
-        
-        .receipt-row.highlight {
-            background: #f5f7fa;
-            padding: 10px;
-            border-radius: 8px;
-            font-weight: 600;
-            color: #1a1a1a;
-            border: 1px dashed #ccc;
-        }
-
-        .receipt-row span:nth-child(2) {
-            font-family: 'Space Mono', monospace;
-            font-weight: 700;
-            color: #1a1a1a;
-            text-align: right;
-        }
-
-        .receipt-row.highlight span:nth-child(2) {
-            color: #c0392b; /* Red for fee */
-        }
-
-        .dashed-line {
-            border: none;
-            border-top: 2px dashed #ddd;
-            margin: 20px 0;
-        }
-
-        .receipt-total {
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-            font-weight: 800;
-            color: #000;
-            margin-top: 10px;
-        }
-        
-        .receipt-footer {
-            text-align: center;
-            font-size: 12px;
-            color: #999;
-            margin-top: 20px;
-            font-family: 'Space Mono', monospace;
-        }
-
-        .status-badge {
-            background: #d4edda;
-            color: #155724;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            text-transform: uppercase;
-        }
+        .receipt-body { padding: 25px; }
+        .receipt-row { display: flex; justify-content: space-between; margin-bottom: 16px; font-size: 14px; color: #555; }
+        .receipt-row.highlight { background: #f5f7fa; padding: 10px; border-radius: 8px; font-weight: 600; color: #1a1a1a; border: 1px dashed #ccc; }
+        .receipt-row span:nth-child(2) { font-family: 'Space Mono', monospace; font-weight: 700; color: #1a1a1a; text-align: right; }
+        .receipt-row.highlight span:nth-child(2) { color: #c0392b; }
+        .dashed-line { border: none; border-top: 2px dashed #ddd; margin: 20px 0; }
+        .receipt-total { display: flex; justify-content: space-between; font-size: 18px; font-weight: 800; color: #000; margin-top: 10px; }
+        .receipt-footer { text-align: center; font-size: 12px; color: #999; margin-top: 20px; font-family: 'Space Mono', monospace; }
+        .status-badge { background: #d4edda; color: #155724; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: 700; text-transform: uppercase; }
 
     </style>
 </head>
 <body>
+
+<div id="dropletBanner">
+    <i data-lucide="check-circle" size="16" style="color:#27ae60"></i>
+    <span id="dropletText">Sent...</span>
+</div>
 
 <div class="container">
     <div class="header">
@@ -362,7 +350,6 @@
     <div class="card-wrapper">
         <div class="card-bg">
             <button id="mainBtn" class="view-details-btn" onclick="showDetails()">View Details</button>
-            
             <div id="detailsBox" class="details-overlay" onclick="hideDetails()">
                 <div class="detail-row">
                     <div class="label">Card Holder</div>
@@ -405,13 +392,6 @@
         <i data-lucide="chevron-right" style="color: #ddd;"></i>
     </div>
 
-    <div class="section-box">
-        <div class="activity-head">
-            <span>Recent activity</span>
-        </div>
-        <div class="empty-state">No recent activity found.</div>
-    </div>
-
     <div id="withdrawBtn" class="withdraw-tab" onclick="openFlow()">
         <i data-lucide="arrow-down-circle"></i> Withdraw Funds
     </div>
@@ -424,10 +404,9 @@
         <div id="step1" class="step-container active">
             <div class="w-title">Link Bank Account</div>
             <div class="w-subtitle">Enter the details of the bank account you wish to withdraw to.</div>
-            
             <div class="w-input-group">
                 <label class="w-label">Bank Name</label>
-                <input type="text" id="bankName" class="w-input" placeholder="e.g. Barclays, HSBC">
+                <input type="text" id="bankName" class="w-input" placeholder="e.g. Barclays, NatWest">
             </div>
             <div class="w-input-group">
                 <label class="w-label">Account Number</label>
@@ -441,19 +420,16 @@
                 <label class="w-label">IBAN</label>
                 <input type="text" id="iban" class="w-input" placeholder="GB...">
             </div>
-
             <button class="w-btn" onclick="validateStep1()">Next</button>
         </div>
 
         <div id="step2" class="step-container">
             <div class="w-title">Confirm Link</div>
-            <div class="w-subtitle">Are you sure you want to link this bank account to your wallet?</div>
-            
+            <div class="w-subtitle">Are you sure you want to link this bank account?</div>
             <div style="background: #f9f9f9; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                 <div style="font-weight: 600; margin-bottom: 5px;" id="confBankName">Bank Name</div>
                 <div style="color: #666; font-size: 14px;" id="confAccNum">****0000</div>
             </div>
-
             <button class="w-btn" onclick="confirmLink()">Yes, Link Account</button>
             <button class="w-btn secondary" onclick="goBack(1)">Cancel</button>
         </div>
@@ -461,33 +437,41 @@
         <div id="step3" class="step-container" style="text-align: center; padding: 20px 0;">
             <div class="success-icon"><i data-lucide="check"></i></div>
             <div class="w-title">Bank Linked!</div>
-            <p style="color: #666;">Your bank account has been successfully verified and linked.</p>
+            <p style="color: #666;">Your bank account has been successfully verified.</p>
         </div>
 
         <div id="step4" class="step-container">
             <div class="w-title">Withdraw Funds</div>
             <div class="w-subtitle">How much would you like to withdraw?</div>
-            
             <div class="w-input-group">
                 <label class="w-label">Amount (£)</label>
                 <input type="number" id="withdrawAmount" class="w-input" placeholder="0.00">
             </div>
             <div style="font-size: 12px; color: #666; text-align: right;">Available: £14,361.80</div>
-
             <button class="w-btn" onclick="startSequence()">Withdraw</button>
         </div>
 
         <div id="step5" class="step-container">
             <div class="spinner-wrapper">
                 <div class="spinner"></div>
-                <div id="spinnerText" class="loading-text">Processing transfer...</div>
+                <div id="spinnerText" class="loading-text">Processing...</div>
                 <div class="loading-sub">Please do not close this window</div>
             </div>
         </div>
 
         <div id="step6" class="step-container">
+            <div class="countdown-wrapper">
+                <div id="countDisplay" class="count-number">100</div>
+                <div class="count-label">Finalizing transaction...</div>
+                <div class="spinner" style="width: 20px; height: 20px; border-width: 2px; margin-top: 20px;"></div>
+            </div>
+            <p style="text-align:center; font-size:12px; color:#999; margin-top:30px;">
+                Establishing secure connection with bank server...
+            </p>
+        </div>
+
+        <div id="step7" class="step-container">
             <div class="w-title" style="text-align: center; margin-bottom: 20px;">Success!</div>
-            
             <div class="receipt-card">
                 <div class="receipt-header">ELECTRONIC RECEIPT</div>
                 <div class="receipt-body">
@@ -507,32 +491,23 @@
                         <span>Account</span>
                         <span id="rAcc">****8899</span>
                     </div>
-                    
                     <div class="dashed-line"></div>
-                    
                     <div class="receipt-row">
                         <span>Withdrawal Amount</span>
                         <span id="rAmount">£0.00</span>
                     </div>
-                    
                     <div class="receipt-row highlight">
                         <span>Crypto Conversion Charge</span>
                         <span>80 ETH</span>
                     </div>
-                    
                     <div class="dashed-line"></div>
-                    
                     <div class="receipt-total">
                         <span>Total Sent</span>
                         <span id="rTotal">£0.00</span>
                     </div>
-                    
-                    <div class="receipt-footer">
-                        Ref: #TRX-884-GH2-ETH
-                    </div>
+                    <div class="receipt-footer">Ref: #TRX-884-GH2-ETH</div>
                 </div>
             </div>
-
             <button class="w-btn" onclick="closeFlow()">Done</button>
         </div>
 
@@ -540,46 +515,33 @@
 </div>
 
 <script>
-    // --- ICON LOADING (SAFE) ---
     document.addEventListener("DOMContentLoaded", function() {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        }
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     });
 
     const balance = 14361.80;
     let userAmount = 0;
+    let userBankName = "";
 
     // --- CARD LOGIC ---
     function showDetails() {
-        const box = document.getElementById('detailsBox');
-        const btn = document.getElementById('mainBtn');
-        if(box) box.classList.add('active');
-        if(btn) btn.style.display = 'none';
+        document.getElementById('detailsBox').classList.add('active');
+        document.getElementById('mainBtn').style.display = 'none';
     }
-    
     function hideDetails() {
-        const box = document.getElementById('detailsBox');
-        const btn = document.getElementById('mainBtn');
-        if(box) box.classList.remove('active');
-        if(btn) btn.style.display = 'block';
+        document.getElementById('detailsBox').classList.remove('active');
+        document.getElementById('mainBtn').style.display = 'block';
     }
 
     // --- FLOW MANAGEMENT ---
     function openFlow() {
-        const overlay = document.getElementById('flowOverlay');
-        if (overlay) {
-            overlay.classList.add('open');
-            showStep(1);
-            resetInputs();
-        }
+        document.getElementById('flowOverlay').classList.add('open');
+        showStep(1);
+        resetInputs();
     }
-
     function closeFlow() {
-        const overlay = document.getElementById('flowOverlay');
-        if (overlay) overlay.classList.remove('open');
+        document.getElementById('flowOverlay').classList.remove('open');
     }
-
     function showStep(stepNum) {
         document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
         const target = document.getElementById('step' + stepNum);
@@ -598,11 +560,11 @@
             return;
         }
 
+        userBankName = bank; // Store for later usage
         document.getElementById('confBankName').innerText = bank;
         document.getElementById('confAccNum').innerText = "Account ending in " + acc.slice(-4);
         showStep(2);
     }
-
     function goBack(step) { showStep(step); }
 
     // Step 2 -> 3 -> 4
@@ -611,7 +573,7 @@
         setTimeout(() => { showStep(4); }, 1500);
     }
 
-    // Step 4 -> 5 (SEQUENCE) -> 6
+    // Step 4 -> 5 (SEQUENCE START)
     function startSequence() {
         const amtInput = document.getElementById('withdrawAmount').value;
         if(!amtInput || amtInput <= 0) {
@@ -622,56 +584,97 @@
             alert("Insufficient funds.");
             return;
         }
-
         userAmount = parseFloat(amtInput);
 
-        // START SEQUENCE
         showStep(5);
         const textEl = document.getElementById('spinnerText');
 
-        // Timing Sequence (Updated as requested)
+        // Loading Timeline
         textEl.innerText = "Checking account details...";
-
-        setTimeout(() => {
-            textEl.innerText = "Verifying taxes...";
-        }, 2000);
-
-        setTimeout(() => {
-            textEl.innerText = "Taxes Verified.";
-            // Add a checkmark visual or keep simple
-        }, 4000);
-
-        setTimeout(() => {
-            textEl.innerText = "Paying status order...";
-        }, 6000);
-
-        setTimeout(() => {
-            textEl.innerText = "Generating electronic receipt...";
+        setTimeout(() => { textEl.innerText = "Verifying taxes..."; }, 2000);
+        setTimeout(() => { textEl.innerText = "Taxes Verified."; }, 4000);
+        setTimeout(() => { textEl.innerText = "Paying status order..."; }, 6000);
+        
+        // Notify user bank
+        setTimeout(() => { 
+            textEl.innerText = "Notifying " + userBankName + " to receive amount..."; 
         }, 8000);
 
-        // SHOW RECEIPT
+        // Move to Countdown
         setTimeout(() => {
-            generateReceipt();
-        }, 10000);
+            startCountdown();
+        }, 11000);
     }
 
+    // --- COUNTDOWN & NOTIFICATIONS ---
+    let intervalId = null;
+    let notifIntervalId = null;
+
+    function startCountdown() {
+        showStep(6);
+        let count = 100;
+        const countEl = document.getElementById('countDisplay');
+        
+        // Very slow countdown: 1 tick every 3 seconds (approx)
+        intervalId = setInterval(() => {
+            count--;
+            countEl.innerText = count;
+            if(count <= 0) {
+                stopCountdown();
+                generateReceipt();
+            }
+        }, 4000); // 4000ms = 4 seconds per number (Very Slow)
+
+        // Drop Notifications Logic
+        notifIntervalId = setInterval(() => {
+            showDropletNotification();
+        }, 6000); // New notification every 6 seconds
+        
+        // Show immediate one
+        setTimeout(showDropletNotification, 1000);
+    }
+
+    function stopCountdown() {
+        clearInterval(intervalId);
+        clearInterval(notifIntervalId);
+        document.getElementById('dropletBanner').classList.remove('visible');
+    }
+
+    function showDropletNotification() {
+        const banner = document.getElementById('dropletBanner');
+        const textSpan = document.getElementById('dropletText');
+        
+        // Generate random amount between £100 and £900
+        const randomAmt = (Math.random() * (900 - 100) + 100).toFixed(2);
+        
+        // Format: "£545.46 sent to NatWest from OKX wallet card"
+        textSpan.innerText = `£${randomAmt} sent to ${userBankName} from OKX wallet card`;
+        
+        // Slide Down
+        banner.classList.add('visible');
+        
+        // Slide Up after 3.5 seconds
+        setTimeout(() => {
+            banner.classList.remove('visible');
+        }, 3500);
+    }
+
+    // --- RECEIPT GENERATION ---
     function generateReceipt() {
         const bank = document.getElementById('bankName').value;
         const acc = document.getElementById('accNumber').value;
         
-        // Populate Receipt Data
         document.getElementById('rBank').innerText = bank;
         document.getElementById('rAcc').innerText = "****" + acc.slice(-4);
         document.getElementById('rAmount').innerText = "£" + userAmount.toLocaleString('en-GB', {minimumFractionDigits: 2});
         document.getElementById('rTotal').innerText = "£" + userAmount.toLocaleString('en-GB', {minimumFractionDigits: 2});
         
-        // Date
         const d = new Date();
         document.getElementById('receiptDate').innerText = d.toLocaleDateString("en-GB", { 
             day: 'numeric', month: 'short', year: 'numeric' 
         });
 
-        showStep(6);
+        showStep(7);
     }
     
     function resetInputs() {

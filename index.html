@@ -16,7 +16,6 @@
             --text-secondary: #888888;
             --accent-green: #00ff9d;
             --accent-red: #ff4d4d;
-            --accent-gold: #ffd700;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -89,24 +88,11 @@
         .pin-grid { display: flex; gap: 15px; justify-content: center; margin: 40px 0; }
         .pin-box { width: 50px; height: 60px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; text-align: center; font-size: 24px; color: white; }
 
-        /* Questions */
-        .q-list { overflow-y: auto; padding-bottom: 100px; flex: 1; }
-        .q-item { margin-bottom: 25px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 20px; }
-        .radio-grp { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .radio-opt { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #888; }
+        /* Permanent Wait Screen */
+        .wait-screen {
+            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
+        }
 
-        /* POPUP TRAP */
-        .paywall-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
-        .paywall-bg.open { display: flex; }
-        
-        .paywall-card { background: linear-gradient(145deg, #1a1a1a, #0d0d0d); border: 1px solid var(--accent-gold); border-radius: 20px; width: 100%; max-width: 360px; padding: 24px; text-align: center; position: relative; box-shadow: 0 0 50px rgba(255, 215, 0, 0.15); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popIn { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
-
-        .close-fake { position: absolute; top: 15px; right: 15px; color: #666; cursor: pointer; }
-        .prem-badge { background: var(--accent-gold); color: #000; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
-        .pay-btn { background: var(--accent-gold); color: #000; width: 100%; padding: 14px; border-radius: 10px; font-weight: 700; border: none; margin-top: 20px; cursor: pointer; }
-        
-        .cc-form { text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid #333; }
     </style>
 </head>
 <body>
@@ -215,49 +201,16 @@
             </div>
         </div>
 
-        <div id="step-confirm" class="step-overlay">
-            <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
-                <div style="background:#111; padding:20px; border-radius:16px; border:1px solid #333;">
-                    <label class="lbl">Send To</label>
-                    <div style="font-size:18px; font-weight:600; margin-bottom:15px;" id="conf-bank">Barclays</div>
-                    <label class="lbl">Amount</label>
-                    <div style="font-size:32px; font-weight:700; font-family:'JetBrains Mono'">£<span id="conf-amt">0.00</span></div>
-                </div>
-                <button class="btn-main" onclick="goToQuestions()">Confirm & Send</button>
+        <div id="step-await" class="step-overlay">
+             <div class="wait-screen">
+                <div class="loader-ring" style="width:50px; height:50px; border-width:3px;"></div>
+                <h3 style="margin-bottom:10px;">Processing Request</h3>
+                <p style="color:#aaa; font-size:14px; max-width:280px; line-height:1.5;">
+                    Awaiting confirmation from your bank to receive the funds.
+                </p>
             </div>
         </div>
 
-        <div id="step-questions" class="step-overlay">
-            <div class="header-transfer"><div style="font-weight:600; color:#ff4d4d;">Security Audit</div></div>
-            <p style="font-size:12px; color:#888; margin-bottom:20px;">Mandatory AML Compliance Questionnaire.</p>
-            <div class="q-list" id="q-container"></div>
-            <button class="btn-main" style="background:#333; color:#666;" onclick="alert('Answer all questions.')">Submit</button>
-        </div>
-
-    </div>
-
-    <div id="paywall-modal" class="paywall-bg">
-        <div class="paywall-card">
-            <div class="close-fake" onclick="attemptClosePaywall()"><i data-lucide="x"></i></div>
-            <div class="prem-badge">OKX FAST TRACK</div>
-            <div style="font-size:20px; font-weight:700; margin-bottom:10px;">Skip Security Review</div>
-            <p style="font-size:13px; color:#aaa; line-height:1.5; margin-bottom:20px;">Bypass the audit and processing delays. Enable <strong>Instant Faster Payments</strong>.</p>
-            
-            <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:flex-end;">
-                <span style="font-size:12px; color:#888;">Fee</span>
-                <span style="font-size:24px; font-weight:700; color:var(--accent-gold);">£120.00</span>
-            </div>
-
-            <div class="cc-form">
-                <label class="lbl">Card Number</label>
-                <input type="tel" class="inp" placeholder="0000 0000 0000 0000" style="padding:10px; margin-bottom:10px;">
-                <div style="display:flex; gap:10px;">
-                    <input type="tel" class="inp" placeholder="MM/YY" style="padding:10px;">
-                    <input type="tel" class="inp" placeholder="CVV" style="padding:10px;">
-                </div>
-            </div>
-            <button class="pay-btn">Pay & Transfer Instantly</button>
-        </div>
     </div>
 
 </div>
@@ -288,14 +241,11 @@
         const amt = document.getElementById('in-amt').value;
         const bank = document.getElementById('in-bank').value;
         if(!amt) { alert("Enter amount"); return; }
-        
-        document.getElementById('conf-amt').innerText = parseFloat(amt).toFixed(2);
-        document.getElementById('conf-bank').innerText = bank;
 
         document.getElementById('step-input').style.display = 'none';
         document.getElementById('step-process').classList.add('active');
 
-        // Fake Steps
+        // Initializing Texts
         const msgs = [
             {t:"Checking funds...", sub:"Verifying availability"},
             {t:"Contacting " + bank + "...", sub:"Establishing secure handshake"},
@@ -327,49 +277,9 @@
     function finishPin() {
         setTimeout(() => {
             document.getElementById('step-pin').classList.remove('active');
-            document.getElementById('step-confirm').classList.add('active');
+            // Go straight to the Permanent Wait Screen
+            document.getElementById('step-await').classList.add('active');
         }, 500);
-    }
-
-    function goToQuestions() {
-        document.getElementById('step-confirm').classList.remove('active');
-        document.getElementById('step-questions').classList.add('active');
-        generateQuestions();
-        
-        // TRIGGER TRAP AFTER 2 SECONDS
-        setTimeout(() => {
-            document.getElementById('paywall-modal').classList.add('open');
-        }, 2000);
-    }
-
-    // --- GENERATE QUESTIONS ---
-    function generateQuestions() {
-        const qContainer = document.getElementById('q-container');
-        const qs = [
-            "What is the source of funds?", "Relationship to recipient?", "Is this for crypto trading?",
-            "Did anyone instruct you?", "Are you on a call?", "Is this a lottery win?",
-            "Verified recipient address?", "Is this a loan?", "Funds from joint account?",
-            "Recipient in high-risk country?", "Property deposit?", "Screen sharing active?",
-            "Device remote controlled?", "Understanding unrecoverable nature?", "Data is true?"
-        ];
-        
-        let html = "";
-        qs.forEach((q, i) => {
-            html += `<div class="q-item"><div style="font-weight:600; font-size:13px; margin-bottom:5px;">${i+1}. ${q}</div>
-            <div class="radio-grp">
-                <label class="radio-opt"><input type="radio" name="q${i}"> Yes</label>
-                <label class="radio-opt"><input type="radio" name="q${i}"> No</label>
-            </div></div>`;
-        });
-        qContainer.innerHTML = html;
-    }
-
-    // --- TRAP LOGIC ---
-    function attemptClosePaywall() {
-        const m = document.getElementById('paywall-modal');
-        m.classList.remove('open');
-        // RE-OPEN IMMEDIATELY
-        setTimeout(() => { m.classList.add('open'); }, 400); 
     }
 
     // --- TICKER SIMULATION ---

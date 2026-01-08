@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>OKX Pro Integrated</title>
+    <title>OKX Pro Dashboard</title>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <style>
@@ -16,6 +16,7 @@
             --text-secondary: #888888;
             --accent-green: #00ff9d;
             --accent-red: #ff4d4d;
+            --accent-gold: #D4AF37;
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -31,67 +32,94 @@
             overflow-x: hidden;
         }
 
-        /* --- WRAPPERS --- */
-        #app-container { width: 100%; max-width: 420px; position: relative; }
+        #app-container { width: 100%; max-width: 420px; position: relative; padding-bottom: 90px; }
         
-        /* Views */
-        #view-dashboard { display: block; padding: 16px; padding-bottom: 90px; }
-        #view-transfer { display: none; width: 100%; min-height: 100vh; background: var(--bg-deep); position: absolute; top: 0; left: 0; z-index: 200; padding: 16px;}
+        /* VIEWS */
+        #view-dashboard { display: block; }
+        #view-transfer { display: none; position: fixed; inset: 0; background: var(--bg-deep); z-index: 200; padding: 16px; overflow-y: auto; }
 
-        /* --- DASHBOARD STYLES --- */
-        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 10px; }
+        /* --- DASHBOARD ELEMENTS --- */
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 16px 16px 10px; }
         .user-pill { display: flex; align-items: center; gap: 10px; background: var(--surface-2); padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border-subtle); }
         .user-avatar { width: 24px; height: 24px; background: #444; border-radius: 50%; }
-        
-        /* Live Ticker */
-        .live-ticker { display: flex; gap: 15px; overflow-x: auto; padding: 10px 0 20px; scrollbar-width: none; }
+
+        /* Ticker */
+        .live-ticker { display: flex; gap: 15px; overflow-x: auto; padding: 0 16px 20px; scrollbar-width: none; }
         .ticker-item { display: flex; align-items: baseline; gap: 6px; font-family: 'JetBrains Mono'; background: var(--surface-1); padding: 6px 10px; border-radius: 8px; border: 1px solid var(--border-subtle); white-space: nowrap; }
         .flash-up { color: var(--accent-green) !important; }
-        .flash-down { color: var(--accent-red) !important; }
 
-        /* Asset Card */
-        .asset-card { background: linear-gradient(145deg, var(--surface-2), var(--surface-1)); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px; margin-bottom: 20px; }
-        .main-balance { font-family: 'JetBrains Mono'; font-size: 38px; font-weight: 700; margin: 12px 0; }
+        /* Balance Card */
+        .asset-card { margin: 0 16px 20px; background: linear-gradient(145deg, var(--surface-2), var(--surface-1)); border: 1px solid var(--border-subtle); border-radius: 20px; padding: 24px; }
+        .main-balance { font-family: 'JetBrains Mono'; font-size: 38px; font-weight: 700; margin: 12px 0; transition: color 0.3s; }
         
+        /* DIGITAL VISA CARD */
+        .visa-card {
+            margin: 0 16px 25px;
+            height: 220px;
+            background: linear-gradient(135deg, #1a1a1a 0%, #000000 100%);
+            border-radius: 16px; border: 1px solid #333; position: relative; padding: 24px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            display: flex; flex-direction: column; justify-content: space-between;
+        }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+        .visa-logo { font-style: italic; font-weight: 800; font-size: 24px; color: white; letter-spacing: -1px; }
+        .card-chip { width: 45px; height: 34px; background: linear-gradient(135deg, #e6cfa3 0%, #D4AF37 50%, #b8860b 100%); border-radius: 6px; position: relative; }
+        .card-chip::after { content:''; position: absolute; top: 50%; left: 0; width: 100%; height: 1px; background: rgba(0,0,0,0.3); }
+        .card-number { font-family: 'JetBrains Mono', monospace; font-size: 18px; color: #ccc; letter-spacing: 2px; margin-top: 20px; }
+        .card-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+        .card-holder { font-family: 'Inter', sans-serif; font-size: 12px; color: #888; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+        .card-name { font-family: 'Inter', sans-serif; font-size: 16px; font-weight: 600; color: white; text-transform: uppercase; letter-spacing: 1px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
+
         /* Action Grid */
-        .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 30px; }
+        .action-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; padding: 0 16px; margin-bottom: 30px; }
         .action-item { display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; }
         .icon-sq { width: 50px; height: 50px; background: var(--surface-2); border-radius: 14px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-subtle); transition: 0.2s; }
         .action-item:active .icon-sq { border-color: var(--accent-green); color: var(--accent-green); transform: scale(0.95); }
+
+        /* Tx List */
+        .tx-header { padding: 0 16px; font-size: 14px; font-weight: 600; color: #888; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 15px; }
+        .tx-list { padding: 0 16px; }
+        .tx-item { display: flex; justify-content: space-between; align-items: center; padding: 16px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; margin-bottom: 10px; cursor: pointer; }
+        .status-badge { font-size: 10px; padding: 2px 6px; border-radius: 4px; margin-top: 4px; display: inline-block; }
+        .st-pending { color: #FFA500; background: rgba(255, 165, 0, 0.1); }
+
+        /* --- TRANSFER FLOW STYLES --- */
+        .header-transfer { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px; margin-bottom: 20px; }
+        .btn-back { background: var(--surface-2); border: none; color: white; padding: 8px; border-radius: 50%; cursor: pointer; }
+        .input-group { margin-bottom: 20px; }
+        .lbl { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 1px; }
+        .inp { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono'; font-size: 14px; outline: none; }
+        .inp:focus { border-color: var(--accent-green); }
+        .btn-main { background: white; color: black; width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
+
+        /* Steps */
+        .step-content { display: none; flex-direction: column; height: 100%; }
+        .step-content.active { display: flex; }
+        
+        /* PIN & CODE Inputs */
+        .pin-grid { display: flex; gap: 15px; justify-content: center; margin: 40px 0; }
+        .pin-box { width: 50px; height: 60px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; text-align: center; font-size: 24px; color: white; outline:none; }
+        .pin-box:focus { border-color: var(--accent-green); }
+
+        .code-grid { display: flex; gap: 6px; justify-content: center; margin: 20px 0; }
+        .code-box { width: 34px; height: 44px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 8px; text-align: center; font-size: 18px; color: white; outline:none; font-family:'JetBrains Mono'; }
+        .code-box:focus { border-color: var(--accent-gold); }
+
+        /* Loader */
+        .loader-ring { width: 60px; height: 60px; border: 4px solid var(--surface-2); border-top-color: var(--accent-green); border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 30px; align-self: center; margin-top: 100px;}
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
+        /* OVERLAYS (History Details) */
+        .overlay-full { position: fixed; inset: 0; background: var(--bg-deep); z-index: 500; display: none; flex-direction: column; padding: 20px; animation: slideUp 0.3s; }
+        .overlay-full.active { display: flex; }
+        @keyframes slideUp { from{transform:translateY(100%);} to{transform:translateY(0);} }
+        .detail-card { background: var(--surface-1); border-radius: 16px; padding: 24px; border: 1px solid var(--border-subtle); text-align: center; margin-top: 40px; }
+        .btn-cancel { background: rgba(255, 77, 77, 0.1); color: var(--accent-red); border: 1px solid var(--accent-red); width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; margin-top: 20px; cursor: pointer; }
 
         /* Bottom Nav */
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: rgba(10, 10, 10, 0.95); border-top: 1px solid var(--border-subtle); padding: 12px 20px 30px; display: flex; justify-content: space-between; z-index: 90; }
         .nav-link { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-secondary); font-size: 10px; }
         .nav-link.active { color: white; }
-
-        /* --- TRANSFER FLOW STYLES --- */
-        .header-transfer { display: flex; justify-content: space-between; align-items: center; padding: 10px 0 20px; margin-bottom: 20px; }
-        .btn-back { background: var(--surface-2); border: none; color: white; padding: 8px; border-radius: 50%; cursor: pointer; }
-
-        .input-group { margin-bottom: 20px; }
-        .lbl { font-size: 11px; color: var(--text-secondary); margin-bottom: 8px; display: block; text-transform: uppercase; letter-spacing: 1px; }
-        .inp { background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; padding: 16px; color: white; width: 100%; font-family: 'JetBrains Mono'; font-size: 14px; outline: none; }
-        .inp:focus { border-color: var(--accent-green); }
-
-        .btn-main { background: white; color: black; width: 100%; padding: 16px; border-radius: 12px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
-
-        /* Full Screen Overlays for Transfer Steps */
-        .step-overlay { position: fixed; inset: 0; background: var(--bg-deep); z-index: 300; display: none; flex-direction: column; padding: 20px; animation: fadeIn 0.3s; }
-        .step-overlay.active { display: flex; }
-        @keyframes fadeIn { from{opacity:0;} to{opacity:1;} }
-
-        /* Loader */
-        .loader-ring { width: 60px; height: 60px; border: 4px solid var(--surface-2); border-top-color: var(--accent-green); border-radius: 50%; animation: spin 1s infinite linear; margin-bottom: 30px; }
-        @keyframes spin { 100% { transform: rotate(360deg); } }
-
-        /* PIN */
-        .pin-grid { display: flex; gap: 15px; justify-content: center; margin: 40px 0; }
-        .pin-box { width: 50px; height: 60px; background: var(--surface-1); border: 1px solid var(--border-subtle); border-radius: 12px; text-align: center; font-size: 24px; color: white; }
-
-        /* Permanent Wait Screen */
-        .wait-screen {
-            flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
-        }
 
     </style>
 </head>
@@ -112,18 +140,28 @@
         </div>
 
         <div class="live-ticker">
-            <div class="ticker-item"><span>BTC</span><span id="btc-p">98,245.20</span><span class="flash-up" id="btc-c">+1.4%</span></div>
-            <div class="ticker-item"><span>ETH</span><span id="eth-p">3,450.15</span><span class="flash-down" id="eth-c">-0.8%</span></div>
-            <div class="ticker-item"><span>SOL</span><span id="sol-p">145.80</span><span class="flash-up" id="sol-c">+3.1%</span></div>
+            <div class="ticker-item"><span>BTC</span><span style="color:white">98,245.20</span><span class="flash-up">+1.4%</span></div>
+            <div class="ticker-item"><span>ETH</span><span style="color:white">3,450.15</span><span class="flash-up">+0.8%</span></div>
         </div>
 
         <div class="asset-card">
-            <div style="font-size:12px; color:#888; text-transform:uppercase; display:flex; justify-content:space-between;">
-                <span>Total Balance</span> <span style="color:#00ff9d; background:rgba(0,255,157,0.1); padding:2px 6px; border-radius:4px;">+2.4%</span>
+            <div style="font-size:12px; color:#888; text-transform:uppercase; margin-bottom:5px;">Total Balance</div>
+            <div class="main-balance" id="main-bal">£4,340.90</div>
+            <div style="font-size:10px; color:#888; margin-top:5px;">Available Equity</div>
+        </div>
+
+        <div class="visa-card">
+            <div class="card-top">
+                <div class="card-chip"></div>
+                <div class="visa-logo">VISA</div>
             </div>
-            <div class="main-balance">£4,361.80</div>
-            <div style="display:flex; gap:15px; border-top:1px solid #333; padding-top:15px; margin-top:15px;">
-                <div><div style="font-size:10px; color:#888;">Available</div><div style="font-family:'JetBrains Mono'; font-weight:600;">£14,361.80</div></div>
+            <div class="card-number">**** **** **** 4518</div>
+            <div class="card-bottom">
+                <div>
+                    <div class="card-holder">Card Holder</div>
+                    <div class="card-name">JASVIR SINGH DHILLON</div>
+                </div>
+                <div style="font-size:14px; color:white; font-weight:600;">Platinum</div>
             </div>
         </div>
 
@@ -133,14 +171,34 @@
             <div class="action-item"><div class="icon-sq"><i data-lucide="arrow-left-right"></i></div><span style="font-size:11px; color:#888;">Transfer</span></div>
             <div class="action-item"><div class="icon-sq"><i data-lucide="layers"></i></div><span style="font-size:11px; color:#888;">Assets</span></div>
         </div>
-        
-        <div style="font-size:14px; font-weight:600; color:#888; border-bottom:1px solid #333; padding-bottom:10px; margin-bottom:15px;">Recent Activity</div>
-        <div style="display:flex; justify-content:space-between; align-items:center; padding:15px; background:#111; border-radius:12px; margin-bottom:10px; border:1px solid #333;">
-            <div style="display:flex; gap:12px; align-items:center;">
-                <i data-lucide="arrow-down-left" color="#00ff9d"></i>
-                <div><div style="font-weight:600; font-size:14px;">GBP Deposit</div><div style="font-size:11px; color:#888;">Jan 05</div></div>
+
+        <div class="tx-header">Recent Activity</div>
+        <div class="tx-list" id="tx-container">
+            <div class="tx-item" id="pending-1" onclick="showTxDetails()">
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <div style="background:var(--surface-2); padding:10px; border-radius:10px;">
+                        <i data-lucide="clock" color="#FFA500" size="20"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:600; font-size:14px;">NatWest Withdrawal</div>
+                        <div class="status-badge st-pending">Pending Approval</div>
+                    </div>
+                </div>
+                <div style="font-family:'JetBrains Mono'; color:white;">-£10,000.00</div>
             </div>
-            <div style="font-family:'JetBrains Mono'; color:#00ff9d;">+£5,000.00</div>
+            
+            <div class="tx-item">
+                <div style="display:flex; gap:12px; align-items:center;">
+                    <div style="background:var(--surface-2); padding:10px; border-radius:10px;">
+                        <i data-lucide="arrow-down-left" color="#00ff9d" size="20"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight:600; font-size:14px;">GBP Deposit</div>
+                        <div style="font-size:11px; color:#888;">Jan 05</div>
+                    </div>
+                </div>
+                <div style="font-family:'JetBrains Mono'; color:#00ff9d;">+£5,000.00</div>
+            </div>
         </div>
 
         <div class="bottom-nav">
@@ -153,45 +211,45 @@
 
     <div id="view-transfer">
         
-        <div id="step-input">
+        <div id="step-input" class="step-content active">
             <div class="header-transfer">
-                <button class="btn-back" onclick="cancelTransfer()"><i data-lucide="arrow-left"></i></button>
+                <button class="btn-back" onclick="cancelFlow()"><i data-lucide="arrow-left"></i></button>
                 <div style="font-weight:600;">Bank Transfer</div>
                 <div style="width:36px;"></div>
             </div>
-            
             <div class="input-group">
                 <label class="lbl">Recipient Bank</label>
-                <input type="text" id="in-bank" class="inp" placeholder="e.g. HSBC" value="Barclays">
+                <input type="text" id="in-bank" class="inp" placeholder="e.g. HSBC" value="NatWest">
             </div>
             <div class="input-group">
                 <label class="lbl">Sort Code</label>
-                <input type="tel" class="inp" placeholder="00-00-00" value="20-45-12">
+                <input type="tel" class="inp" placeholder="00-00-00" value="60-33-01">
             </div>
             <div class="input-group">
                 <label class="lbl">Account Number</label>
-                <input type="tel" class="inp" placeholder="00000000" value="88392019">
+                <input type="tel" class="inp" placeholder="00000000" value="19384755">
             </div>
             <div class="input-group">
                 <label class="lbl">Amount (£)</label>
                 <input type="number" id="in-amt" class="inp" placeholder="0.00">
             </div>
-
             <button class="btn-main" onclick="startProcessing()">Review Transfer</button>
         </div>
 
-        <div id="step-process" class="step-overlay" style="align-items:center; justify-content:center; text-align:center;">
+        <div id="step-process" class="step-content">
             <div class="loader-ring"></div>
-            <div id="process-msg" style="color:#00ff9d; font-family:'JetBrains Mono'; margin-bottom:10px;">Securing transaction...</div>
-            <div id="process-sub" style="color:#888; font-size:12px;">Encrypting data</div>
+            <div style="text-align:center;">
+                <div id="process-msg" style="color:#00ff9d; font-family:'JetBrains Mono'; margin-bottom:10px;">Securing transaction...</div>
+                <div id="process-sub" style="color:#888; font-size:12px;">Encrypting data</div>
+            </div>
         </div>
 
-        <div id="step-pin" class="step-overlay">
+        <div id="step-pin" class="step-content">
             <div class="header-transfer"><div></div><div style="font-weight:600;">Security</div><div></div></div>
             <div style="text-align:center; margin-top:20px;">
                 <i data-lucide="shield-lock" size="40" color="#00ff9d"></i>
                 <h2 style="font-size:18px; margin:15px 0 5px;">Set Transaction PIN</h2>
-                <p style="color:#888; font-size:13px; padding:0 20px;">Create a 4-digit code to verify this transfer.</p>
+                <p style="color:#888; font-size:13px; padding:0 20px;">Enter 4 digits to proceed.</p>
             </div>
             <div class="pin-grid">
                 <input type="tel" maxlength="1" class="pin-box" oninput="moveFocus(this)">
@@ -201,58 +259,107 @@
             </div>
         </div>
 
-        <div id="step-await" class="step-overlay">
-             <div class="wait-screen">
-                <div class="loader-ring" style="width:50px; height:50px; border-width:3px;"></div>
-                <h3 style="margin-bottom:10px;">Processing Request</h3>
-                <p style="color:#aaa; font-size:14px; max-width:280px; line-height:1.5;">
-                    Awaiting confirmation from your bank to receive the funds.
+        <div id="step-verify" class="step-content">
+             <div class="header-transfer"><div style="width:36px"></div><div style="font-weight:600;">Verification</div><div style="width:36px"></div></div>
+             
+             <div style="text-align:center; padding-top:20px;">
+                <div style="background:rgba(255,215,0,0.1); width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 20px; border:1px solid var(--accent-gold);">
+                    <i data-lucide="mail-warning" size="30" color="#D4AF37"></i>
+                </div>
+                
+                <h3 style="margin-bottom:15px;">Action Required</h3>
+                <p style="font-size:13px; color:#aaa; line-height:1.5; padding:0 20px; margin-bottom:25px;">
+                    Check <strong>shellyannmarigold@outlook.com</strong> for a confirmation from NatWest to receive the transfer.
                 </p>
-            </div>
+
+                <div style="font-family:'JetBrains Mono'; font-size:28px; color:#ff4d4d; font-weight:700; margin-bottom:10px;" id="timer">01:10:00</div>
+                <div style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:1px; margin-bottom:30px;">Time Remaining</div>
+
+                <div style="text-align:left; padding:0 10px;">
+                    <label class="lbl" style="text-align:center;">Enter 8-Digit Bank Code</label>
+                    <div class="code-grid">
+                        <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
+                        <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
+                        <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
+                        <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
+                        <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
+                        <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
+                        <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
+                        <input type="tel" maxlength="1" class="code-box" oninput="checkFinalCode(this)">
+                    </div>
+                </div>
+             </div>
         </div>
 
     </div>
 
 </div>
 
+<div id="details-overlay" class="overlay-full">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <button onclick="closeDetails()" style="background:none; border:none; color:white; cursor:pointer;"><i data-lucide="arrow-left"></i></button>
+        <div style="font-weight:600;">Transaction Details</div>
+        <div style="width:24px;"></div>
+    </div>
+    <div class="detail-card">
+        <div style="background:rgba(255,165,0,0.1); width:60px; height:60px; border-radius:50%; display:flex; align-items:center; justify-content:center; margin:0 auto 15px;">
+            <i data-lucide="clock" size="30" color="#FFA500"></i>
+        </div>
+        <h2 style="margin:0 0 5px; font-size:18px;">Withdrawal Pending</h2>
+        <p style="color:#888; font-size:13px; margin:0 0 20px;">To NatWest Bank (...755)</p>
+        <div style="font-family:'JetBrains Mono'; font-size:32px; font-weight:700; margin-bottom:20px;">£10,000.00</div>
+        <div style="background:#111; padding:15px; border-radius:8px; border:1px solid #333; text-align:left;">
+            <div style="font-size:11px; color:#888; margin-bottom:5px;">STATUS</div>
+            <div style="font-size:13px; color:#FFA500; line-height:1.4;">Awaiting confirmation from your bank to receive the funds.</div>
+        </div>
+        <button class="btn-cancel" onclick="refundTx()">Cancel Transfer</button>
+    </div>
+</div>
+
 <script>
     lucide.createIcons();
 
-    // --- NAVIGATION FUNCTIONS ---
+    // --- NAVIGATION ---
     function startTransferFlow() {
-        document.getElementById('view-dashboard').style.display = 'none';
         document.getElementById('view-transfer').style.display = 'block';
-        document.getElementById('step-input').style.display = 'block';
+        showStep('step-input');
     }
-
-    function cancelTransfer() {
-        // Reset and go back home
-        document.getElementById('view-dashboard').style.display = 'block';
+    function cancelFlow() {
         document.getElementById('view-transfer').style.display = 'none';
-        resetOverlays();
+    }
+    function showStep(id) {
+        document.querySelectorAll('.step-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
     }
 
-    function resetOverlays() {
-        document.querySelectorAll('.step-overlay').forEach(el => el.classList.remove('active'));
+    // --- HISTORY / REFUND LOGIC ---
+    function showTxDetails() { document.getElementById('details-overlay').classList.add('active'); }
+    function closeDetails() { document.getElementById('details-overlay').classList.remove('active'); }
+    
+    function refundTx() {
+        closeDetails();
+        const row = document.getElementById('pending-1');
+        if(row) {
+            row.style.display = 'none';
+            // Update Balance logic from previous request
+            const balEl = document.getElementById('main-bal');
+            balEl.style.color = '#00ff9d';
+            balEl.innerText = "£14,340.90"; // Add 10k back
+            setTimeout(() => { balEl.style.color = 'white'; alert("Funds returned."); }, 500);
+        }
     }
 
-    // --- FLOW LOGIC ---
+    // --- FLOW: PROCESSING ---
     function startProcessing() {
         const amt = document.getElementById('in-amt').value;
-        const bank = document.getElementById('in-bank').value;
         if(!amt) { alert("Enter amount"); return; }
-
-        document.getElementById('step-input').style.display = 'none';
-        document.getElementById('step-process').classList.add('active');
-
-        // Initializing Texts
+        showStep('step-process');
+        
         const msgs = [
             {t:"Checking funds...", sub:"Verifying availability"},
-            {t:"Contacting " + bank + "...", sub:"Establishing secure handshake"},
-            {t:"Checking details...", sub:"Validating Sort Code"},
-            {t:"Sending funds...", sub:"Initiating transfer protocol"}
+            {t:"Contacting NatWest...", sub:"Handshaking"},
+            {t:"Sending funds...", sub:"Initiating protocol"}
         ];
-
         let i = 0;
         const interval = setInterval(() => {
             if(i < msgs.length) {
@@ -261,34 +368,74 @@
                 i++;
             } else {
                 clearInterval(interval);
-                document.getElementById('step-process').classList.remove('active');
-                document.getElementById('step-pin').classList.add('active');
+                showStep('step-pin');
             }
-        }, 2000); // 2 seconds per step
+        }, 1500);
     }
 
+    // --- FLOW: PIN ---
     function moveFocus(elem) {
         if(elem.value.length >= 1) {
             const next = elem.nextElementSibling;
             if(next) next.focus();
         }
     }
-
     function finishPin() {
         setTimeout(() => {
-            document.getElementById('step-pin').classList.remove('active');
-            // Go straight to the Permanent Wait Screen
-            document.getElementById('step-await').classList.add('active');
+            showStep('step-verify');
+            startTimer();
         }, 500);
     }
 
-    // --- TICKER SIMULATION ---
-    setInterval(() => {
-        const el = document.getElementById('btc-p');
-        let val = parseFloat(el.innerText.replace(',',''));
-        val += (Math.random() - 0.5) * 50;
-        el.innerText = val.toLocaleString(undefined, {minimumFractionDigits:2});
-    }, 2000);
+    // --- FLOW: VERIFY (TIMER & CODE) ---
+    function startTimer() {
+        let duration = 70 * 60; // 70 minutes in seconds
+        const display = document.getElementById('timer');
+        
+        const timerInt = setInterval(() => {
+            let hours = Math.floor(duration / 3600);
+            let minutes = Math.floor((duration % 3600) / 60);
+            let seconds = duration % 60;
+
+            hours = hours < 10 ? "0" + hours : hours;
+            minutes = minutes < 10 ? "0" + minutes : minutes;
+            seconds = seconds < 10 ? "0" + seconds : seconds;
+
+            display.textContent = hours + ":" + minutes + ":" + seconds;
+
+            if (--duration < 0) {
+                clearInterval(timerInt);
+                display.textContent = "EXPIRED";
+            }
+        }, 1000);
+    }
+
+    function codeFocus(elem) {
+        if(elem.value.length >= 1) {
+            const next = elem.nextElementSibling;
+            if(next) next.focus();
+        }
+    }
+
+    function checkFinalCode(elem) {
+        if(elem.value.length < 1) return;
+        
+        // Gather all inputs
+        const inputs = document.querySelectorAll('.code-box');
+        let code = "";
+        inputs.forEach(input => code += input.value);
+
+        if(code === "65920015") {
+            setTimeout(() => {
+                alert("CODE ACCEPTED. Transfer Complete.");
+                cancelFlow();
+            }, 300);
+        } else if (code.length === 8) {
+            // Optional: Shake effect or error
+            elem.style.borderColor = "red";
+            setTimeout(()=> alert("Invalid Confirmation Code"), 100);
+        }
+    }
 
 </script>
 </body>

